@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       body: parsed.data.body,
       category: parsed.data.category || null,
       published: parsed.data.published ?? true,
+      visibility: parsed.data.visibility ?? "EVERYONE",
       slug,
       authorId: g.session.user.id,
     },

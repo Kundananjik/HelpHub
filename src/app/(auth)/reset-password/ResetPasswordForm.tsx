@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { resetPasswordAction, type ActionState } from "../actions";
 import { Button } from "@/components/ui/Button";
-import { Input, Label, FieldError } from "@/components/ui/Field";
+import { Label, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SpinnerIcon } from "@/components/icons";
 
 function SubmitButton() {
@@ -58,10 +59,10 @@ export function ResetPasswordForm() {
 
       <div>
         <Label htmlFor="password">New password</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
+          autoComplete="new-password"
           required
           placeholder="At least 8 characters"
           error={!!state.fieldErrors?.password}

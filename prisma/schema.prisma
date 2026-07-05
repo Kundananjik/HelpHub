@@ -49,6 +49,7 @@ model User {
   role           Role      @default(EMPLOYEE)
   jobTitle       String?
   phone          String?
+  skills         Category[] @default([])
   departmentId   String?
   department     Department? @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now())
@@ -167,14 +168,20 @@ model Tag {
   createdAt DateTime @default(now())
 }
 
+enum ArticleVisibility {
+  EVERYONE
+  STAFF
+}
+
 model Article {
-  id        String   @id @default(cuid())
-  title     String
-  slug      String   @unique
-  body      String
-  category  String?
-  published Boolean  @default(true)
-  authorId  String?
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  body       String
+  category   String?
+  published  Boolean  @default(true)
+  visibility ArticleVisibility @default(EVERYONE)
+  authorId   String?
   author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

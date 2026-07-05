@@ -42,6 +42,21 @@ export const commentSchema = z.object({
   isInternal: z.boolean().optional(),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Enter your current password"),
+  newPassword: z
+    .string()
+    .min(8, "New password must be at least 8 characters")
+    .max(100),
+});
+
+export const adminSetPasswordSchema = z.object({
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100),
+});
+
 export const profileSchema = z.object({
   name: z.string().min(2).max(80),
   jobTitle: z.string().max(80).optional().nullable(),
@@ -59,6 +74,7 @@ export const articleSchema = z.object({
   body: z.string().min(10, "Article body is too short"),
   category: z.string().max(60).optional().nullable(),
   published: z.boolean().optional(),
+  visibility: z.enum(["EVERYONE", "STAFF"]).optional(),
 });
 
 export const forgotPasswordSchema = z.object({
