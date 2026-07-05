@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import { registerAction, type ActionState } from "../actions";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SpinnerIcon } from "@/components/icons";
 
 function SubmitButton() {
@@ -83,10 +84,10 @@ export function RegisterForm({
 
       <div>
         <Label htmlFor="password">Password</Label>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
+          autoComplete="new-password"
           required
           placeholder="At least 8 characters"
           error={!!state.fieldErrors?.password}

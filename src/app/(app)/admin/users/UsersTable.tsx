@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Select } from "@/components/ui/Field";
 import { Input, Label } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
@@ -306,12 +307,14 @@ export function UsersTable({
                 <div>
                   <Label htmlFor="new-pwd">New password</Label>
                   <div className="flex gap-2">
-                    <Input
-                      id="new-pwd"
-                      value={newPwd}
-                      onChange={(e) => setNewPwd(e.target.value)}
-                      placeholder="At least 8 characters"
-                    />
+                    <div className="flex-1">
+                      <PasswordInput
+                        id="new-pwd"
+                        value={newPwd}
+                        onChange={(e) => setNewPwd(e.target.value)}
+                        placeholder="At least 8 characters"
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="outline"

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, FieldError } from "@/components/ui/Field";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SpinnerIcon } from "@/components/icons";
 
 export function LoginForm() {
@@ -75,10 +76,9 @@ export function LoginForm() {
             Forgot password?
           </Link>
         </div>
-        <Input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           placeholder="••••••••"
