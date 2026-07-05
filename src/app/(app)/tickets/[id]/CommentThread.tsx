@@ -99,7 +99,7 @@ export function CommentThread({
                 </div>
                 <p
                   className={cn(
-                    "mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200",
+                    "mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700 dark:text-slate-200",
                     c.isInternal &&
                       "rounded-md bg-amber-50 p-2 dark:bg-amber-500/10"
                   )}
