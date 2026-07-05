@@ -154,7 +154,7 @@ cp .env.example .env
 ```
 
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/helphub?schema=public&sslmode=require"
+DATABASE_URL="postgresql://"
 AUTH_SECRET="<openssl rand -base64 32>"
 NEXTAUTH_SECRET="<same value>"
 NEXTAUTH_URL="http://localhost:3000"
