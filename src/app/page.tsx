@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { dashboardPathFor } from "@/lib/guards";
 import { Footer } from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   TicketIcon,
   ChartIcon,
@@ -50,18 +51,21 @@ export default async function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
             <TicketIcon />
           </span>
-          <span className="text-lg font-bold text-slate-900">HelpHub</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">
+            HelpHub
+          </span>
         </div>
-        <nav className="flex items-center gap-3">
+        <nav className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           <Link
             href="/login"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             Sign in
           </Link>
@@ -79,11 +83,11 @@ export default async function Home() {
           <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
             Lightweight IT Service Desk
           </span>
-          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl dark:text-white">
             IT support that actually feels{" "}
-            <span className="text-indigo-600">helpful</span>.
+            <span className="text-indigo-600 dark:text-indigo-400">helpful</span>.
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
             HelpHub brings employees, technicians, and administrators together on
             one platform to submit, triage, and resolve IT issues — fast.
           </p>
@@ -96,7 +100,7 @@ export default async function Home() {
             </Link>
             <Link
               href="/login"
-              className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Sign in
             </Link>
@@ -108,15 +112,17 @@ export default async function Home() {
             {features.map((f) => (
               <div
                 key={f.title}
-                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
                   {f.icon}
                 </span>
-                <h3 className="mt-4 text-base font-semibold text-slate-900">
+                <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-white">
                   {f.title}
                 </h3>
-                <p className="mt-2 text-sm text-slate-600">{f.body}</p>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  {f.body}
+                </p>
               </div>
             ))}
           </div>
