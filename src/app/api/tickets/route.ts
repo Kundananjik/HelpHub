@@ -84,7 +84,10 @@ export async function POST(req: Request) {
 
   // Load-balanced auto-assignment (when enabled by an admin).
   if (await isAutoAssignEnabled()) {
-    const techId = await pickTechnicianForAssignment();
+    const techId = await pickTechnicianForAssignment({
+      departmentId: departmentId || null,
+      category,
+    });
     if (techId) {
       await prisma.ticket.update({
         where: { id: ticket.id },
