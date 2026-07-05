@@ -114,7 +114,7 @@ export function TicketTable({
                   {t.assignee ? (
                     <div className="flex items-center gap-2">
                       <Avatar name={t.assignee.name} size="sm" />
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-600 dark:text-slate-300">
                         {t.assignee.name}
                       </span>
                     </div>

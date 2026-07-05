@@ -97,8 +97,8 @@ export function UsersTable({
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-800/50">
               <tr>
                 <Th>User</Th>
                 <Th>Role</Th>
@@ -108,16 +108,16 @@ export function UsersTable({
                 <Th>Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filtered.map((u) => {
                 const isSelf = u.id === currentUserId;
                 return (
-                  <tr key={u.id} className="hover:bg-slate-50">
+                  <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={u.name} size="sm" />
                         <div>
-                          <p className="text-sm font-medium text-slate-800">
+                          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                             {u.name}
                             {isSelf && (
                               <span className="ml-1 text-xs text-slate-400">
@@ -164,7 +164,7 @@ export function UsersTable({
                         ))}
                       </Select>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">
                       <span title="Created">{u.createdTickets}</span>
                       {" / "}
                       <span title="Assigned">{u.assignedTickets}</span>

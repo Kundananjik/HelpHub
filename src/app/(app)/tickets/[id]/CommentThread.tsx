@@ -59,7 +59,7 @@ export function CommentThread({
 
   return (
     <div>
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
         {comments.length === 0 && (
           <li className="px-5 py-8 text-center text-sm text-slate-400">
             No comments yet. Start the conversation below.
@@ -72,7 +72,7 @@ export function CommentThread({
               <Avatar name={c.author.name} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-slate-800">
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
                     {c.author.name}
                     {mine && (
                       <span className="ml-1 text-xs text-slate-400">(you)</span>
@@ -92,8 +92,9 @@ export function CommentThread({
                 </div>
                 <p
                   className={cn(
-                    "mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700",
-                    c.isInternal && "rounded-md bg-amber-50 p-2"
+                    "mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200",
+                    c.isInternal &&
+                      "rounded-md bg-amber-50 p-2 dark:bg-amber-500/10"
                   )}
                 >
                   {c.body}
@@ -106,7 +107,7 @@ export function CommentThread({
 
       <form
         onSubmit={submit}
-        className="border-t border-slate-100 bg-slate-50 p-4"
+        className="border-t border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/40"
       >
         {error && (
           <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -121,11 +122,11 @@ export function CommentThread({
               ? "Add a reply or troubleshooting note…"
               : "Reply to the technician…"
           }
-          className="bg-white"
+          className="bg-white dark:bg-slate-900"
         />
         <div className="mt-2 flex items-center justify-between">
           {isStaff ? (
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={isInternal}

@@ -7,7 +7,7 @@ export function ArrowLeftLink() {
   return (
     <button
       onClick={() => router.back()}
-      className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800"
+      className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
     >
       <svg
         width="16"

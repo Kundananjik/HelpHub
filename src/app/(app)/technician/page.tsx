@@ -156,10 +156,10 @@ export default async function TechnicianDashboard() {
                     href={`/tickets/${t.id}`}
                     className="block hover:text-indigo-600"
                   >
-                    <p className="truncate text-sm font-medium text-slate-800">
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
                       {t.title}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">
                       {t.priority} · {t.category}
                     </p>
                   </Link>

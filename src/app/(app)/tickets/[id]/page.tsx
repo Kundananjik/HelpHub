@@ -99,7 +99,7 @@ export default async function TicketDetailPage({
 
             {ticket.attachments.length > 0 && (
               <div className="mt-5">
-                <h3 className="mb-2 text-sm font-semibold text-slate-700">
+                <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                   Attachments ({ticket.attachments.length})
                 </h3>
                 <AttachmentGallery attachments={ticket.attachments} />
@@ -130,7 +130,7 @@ export default async function TicketDetailPage({
         <div className="space-y-6">
           <Card>
             <CardHeader title="Details" />
-            <dl className="divide-y divide-slate-100 px-5 py-2 text-sm">
+            <dl className="divide-y divide-slate-100 px-5 py-2 text-sm dark:divide-slate-800">
               <Detail label="Status">
                 <StatusBadge status={ticket.status} />
               </Detail>
@@ -141,21 +141,23 @@ export default async function TicketDetailPage({
                 <CategoryBadge category={ticket.category} />
               </Detail>
               <Detail label="Department">
-                <span className="text-slate-700">
+                <span className="text-slate-700 dark:text-slate-200">
                   {ticket.department?.name ?? "—"}
                 </span>
               </Detail>
               <Detail label="Requester">
                 <div className="flex items-center gap-2">
                   <Avatar name={ticket.creator.name} size="sm" />
-                  <span className="text-slate-700">{ticket.creator.name}</span>
+                  <span className="text-slate-700 dark:text-slate-200">
+                    {ticket.creator.name}
+                  </span>
                 </div>
               </Detail>
               <Detail label="Assignee">
                 {ticket.assignee ? (
                   <div className="flex items-center gap-2">
                     <Avatar name={ticket.assignee.name} size="sm" />
-                    <span className="text-slate-700">
+                    <span className="text-slate-700 dark:text-slate-200">
                       {ticket.assignee.name}
                     </span>
                   </div>
@@ -164,18 +166,18 @@ export default async function TicketDetailPage({
                 )}
               </Detail>
               <Detail label="Created">
-                <span className="text-slate-700">
+                <span className="text-slate-700 dark:text-slate-200">
                   {formatDateTime(ticket.createdAt)}
                 </span>
               </Detail>
               <Detail label="Updated">
-                <span className="text-slate-700">
+                <span className="text-slate-700 dark:text-slate-200">
                   {formatDateTime(ticket.updatedAt)}
                 </span>
               </Detail>
               {ticket.resolvedAt && (
                 <Detail label="Resolved">
-                  <span className="text-slate-700">
+                  <span className="text-slate-700 dark:text-slate-200">
                     {formatDateTime(ticket.resolvedAt)}
                   </span>
                 </Detail>
@@ -215,7 +217,7 @@ function Detail({
 }) {
   return (
     <div className="flex items-center justify-between py-2.5">
-      <dt className="text-slate-500">{label}</dt>
+      <dt className="text-slate-500 dark:text-slate-400">{label}</dt>
       <dd>{children}</dd>
     </div>
   );
