@@ -20,9 +20,12 @@ A lightweight IT service desk (think ServiceNow / Jira Service Management) where
 - [Roles & Permissions](#roles--permissions)
 - [Data Model](#data-model)
 - [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
 - [Demo Accounts](#demo-accounts)
 - [Scripts](#scripts)
+- [Testing](#testing)
 - [API Reference](#api-reference)
+- [Background Jobs (SLA)](#background-jobs-sla)
 - [Deploying to Vercel](#deploying-to-vercel)
 - [Project Structure](#project-structure)
 - [Notes & Limitations](#notes--limitations)
@@ -35,17 +38,39 @@ A lightweight IT service desk (think ServiceNow / Jira Service Management) where
 - **Prisma ORM** with **PostgreSQL** (Neon-ready)
 - **Auth.js / NextAuth v5** — credentials provider + JWT sessions, role-based access
 - **Recharts** — analytics charts
-- **Zod** — request/schema validation
+- **Zod** — request/schema & environment validation
 - **bcryptjs** — password hashing
+- **Vitest** — unit tests
+- Optional: **Resend** (email), **Vercel Blob** (attachment storage),
+  **Upstash Redis** (rate limiting), **Vercel Cron** (SLA checks)
 - Deployable to **Vercel**
 
 ## Features
 
 ### Authentication
 - Email/password **login** & **registration**
-- **Forgot / reset password** flow (token-based; the demo surfaces the reset link
-  in-app instead of sending an email)
+- **Forgot / reset password** flow — emailed via Resend when configured, otherwise
+  the reset link is surfaced in-app so the flow still works locally
 - **Role-based access control** — Employee, Technician, Administrator
+- Edge **middleware** protects authenticated routes at a single choke point
+- **Rate limiting** on registration, password reset, ticket creation, and comments
+
+### Notifications & activity
+- **In-app notifications** (bell with unread count) for assignments, replies,
+  resolutions, role changes, and SLA breaches — with optional email delivery
+- A dedicated `/notifications` page listing all updates
+- **Audit trail** of key events, surfaced in the admin "recent activity" feed
+
+### SLA tracking
+- Per-priority first-response targets (Urgent 1h, High 4h, Medium 1 day, Low 3 days)
+- A scheduled job flags breached tickets and notifies the assignee + admins
+- **SLA breached** badges appear on breached tickets
+
+### Experience
+- **Dark mode** with a toggle (respects system preference, no flash on load)
+- **Loading skeletons**, an error boundary, and a custom 404
+- Pagination, sorting, and search on ticket lists
+- Accessibility: skip link, keyboard/Escape handling, ARIA labels
 
 ### Employee
 - Submit tickets (title, description, category, priority, department, attachments)
@@ -103,9 +128,12 @@ Managed with Prisma (`prisma/schema.prisma`):
   `status` (OPEN / IN_PROGRESS / PENDING / RESOLVED / CLOSED),
   `priority` (LOW / MEDIUM / HIGH / URGENT),
   `category` (HARDWARE / SOFTWARE / NETWORK / ACCOUNT / EMAIL / SECURITY / OTHER),
-  creator, assignee, department, `createdAt` / `updatedAt` / `resolvedAt`
+  creator, assignee, department, `createdAt` / `updatedAt` / `resolvedAt`,
+  plus SLA fields `firstResponseAt` and `slaBreached`
 - **Comment** — body, `isInternal` flag, author, ticket
-- **Attachment** — filename, content type, base64 data, ticket
+- **Attachment** — filename, content type, data (blob URL or base64), ticket
+- **AuditLog** — action, summary, actor, ticket, timestamp
+- **Notification** — user, type, message, ticket, read flag
 - **PasswordResetToken** — token, expiry, used flag
 - NextAuth tables — `Account`, `Session`, `VerificationToken`
 
@@ -151,6 +179,27 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Environment Variables
+
+Validated at startup with Zod (see `src/lib/env.ts`) so misconfiguration fails
+fast with a clear message.
+
+| Variable                   | Required | Purpose                                                        |
+| -------------------------- | :------: | ------------------------------------------------------------- |
+| `DATABASE_URL`             |    ✅    | PostgreSQL connection string                                  |
+| `AUTH_SECRET` / `NEXTAUTH_SECRET` | ✅ | Session/JWT signing secret (at least one required)         |
+| `NEXTAUTH_URL`             |    –     | Base URL of the deployment                                    |
+| `AUTH_TRUST_HOST`          |    –     | Set to `true` behind a proxy / on Vercel                     |
+| `APP_URL`                  |    –     | Public URL for links in emails (falls back to `NEXTAUTH_URL`) |
+| `RESEND_API_KEY`           |    –     | Enables real email delivery (else emails log to console)      |
+| `EMAIL_FROM`               |    –     | From address for outgoing email                               |
+| `BLOB_READ_WRITE_TOKEN`    |    –     | Enables Vercel Blob attachment storage (else base64 in DB)    |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | – | Distributed rate limiting (else in-memory) |
+| `CRON_SECRET`              |    –     | Bearer token required to call the SLA cron endpoint           |
+
+Every optional integration **degrades gracefully** when unset, so the app runs
+fully with just the required variables.
+
 ## Demo Accounts
 
 All seeded accounts use the password **`password123`**:
@@ -174,6 +223,24 @@ All seeded accounts use the password **`password123`**:
 | `npm run db:push`   | Push the Prisma schema to the DB   |
 | `npm run db:seed`   | Seed demo data                     |
 | `npm run db:studio` | Open Prisma Studio                 |
+| `npm test`          | Run unit tests (Vitest)            |
+| `npm run test:watch`| Run tests in watch mode            |
+
+## Testing
+
+Unit tests cover the security-critical and pure logic with **Vitest**:
+
+- `src/lib/permissions.test.ts` — role checks and the employee ticket-update rules
+- `src/lib/sla.test.ts` — SLA due-time and breach calculations
+- `src/lib/tickets.test.ts` — role-scoped query building and sort ordering
+- `src/lib/validation.test.ts` — Zod input schemas
+
+```bash
+npm test
+```
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) spins up a PostgreSQL
+service and runs lint, tests, and build on every push and pull request.
 
 ## API Reference
 
@@ -193,6 +260,24 @@ authenticated session (except NextAuth's own endpoints) and enforce role checks.
 | `DELETE`| `/api/departments/:id`         | Admin                | Delete a department                               |
 | `PATCH`| `/api/users/:id`                | Admin                | Change a user's role / department                 |
 | `DELETE`| `/api/users/:id`               | Admin                | Delete a user                                     |
+| `GET`  | `/api/notifications`            | Any authenticated    | List recent notifications + unread count          |
+| `PATCH`| `/api/notifications`            | Any authenticated    | Mark all notifications read                        |
+| `PATCH`| `/api/notifications/:id`        | Owner                | Mark a single notification read                    |
+| `GET`  | `/api/cron/sla`                 | Cron (Bearer token)  | Flag SLA-breached tickets and notify owners        |
+
+## Background Jobs (SLA)
+
+`GET /api/cron/sla` scans active (unresolved) tickets, marks any that have missed
+their first-response SLA target as breached, and notifies the assignee + admins.
+
+On Vercel it runs every 15 minutes via the schedule in `vercel.json`. Protect it
+by setting `CRON_SECRET`; the endpoint then requires an `Authorization: Bearer
+<CRON_SECRET>` header (Vercel Cron sends this automatically). You can trigger it
+manually for testing:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/sla
+```
 
 ## Deploying to Vercel
 
@@ -208,24 +293,33 @@ authenticated session (except NextAuth's own endpoints) and enforce role checks.
 
 ```
 prisma/
-  schema.prisma        # data models (User, Ticket, Comment, Attachment, Department, …)
+  schema.prisma        # data models (User, Ticket, Comment, Attachment, Department, AuditLog, Notification, …)
   seed.ts              # demo data
+prisma.config.ts       # Prisma config (schema + seed)
+vercel.json            # Vercel Cron schedule for SLA checks
+.github/workflows/     # CI (lint + test + build with a Postgres service)
 src/
-  auth.ts              # NextAuth v5 configuration
+  auth.ts              # NextAuth v5 server instance (Credentials + Prisma)
+  auth.config.ts       # Edge-safe base auth config (used by middleware)
+  middleware.ts        # Route protection via the authorized callback
   app/
     (auth)/            # login, register, forgot/reset password
-    (app)/             # authenticated area (dashboards, tickets, admin, profile)
-    api/               # route handlers (tickets, comments, users, departments, profile)
-  components/          # UI primitives, app shell, charts, icons
-  lib/                 # prisma client, guards, validation, helpers, constants
+    (app)/             # authenticated area (dashboards, tickets, admin, profile, notifications)
+    api/               # route handlers (tickets, comments, users, departments, profile, notifications, cron)
+  components/          # UI primitives, app shell, charts, icons, theme toggle
+  lib/                 # prisma, env, guards, permissions, validation, sla,
+                       # email, notifications, audit, ratelimit, storage, helpers
+  lib/*.test.ts        # Vitest unit tests
 ```
 
 ## Notes & Limitations
 
-- Attachments are stored as base64 data URLs in the database for simplicity
-  (2 MB per file limit). For a production deployment, swap this for object
-  storage (e.g. Vercel Blob or S3).
-- Password reset links are surfaced in the UI for demo purposes; wire up an email
-  provider to send them in production.
-- Priority SLAs on the admin *Priorities* page are presented as response-time
-  targets for reference; they are not enforced by background automation.
+- Attachments fall back to base64 data URLs in the database (2 MB per file) when
+  `BLOB_READ_WRITE_TOKEN` is not set. Configure Vercel Blob for production so
+  files are stored in object storage instead.
+- Without `RESEND_API_KEY`, emails are logged to the server console and password
+  reset links are surfaced in-app so flows still work locally.
+- The in-memory rate limiter is per-instance; set the Upstash variables for
+  correct limiting across multiple serverless instances.
+- Session role is captured at login. When an admin changes a user's role, the
+  affected user is notified and the new role takes effect on their next sign-in.
