@@ -28,6 +28,7 @@ export async function PATCH(
       body: parsed.data.body,
       category: parsed.data.category || null,
       published: parsed.data.published ?? true,
+      visibility: parsed.data.visibility ?? "EVERYONE",
     },
     select: { slug: true },
   });

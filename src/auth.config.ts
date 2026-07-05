@@ -16,7 +16,10 @@ const PROTECTED_PREFIXES = [
 ];
 
 export const authConfig = {
-  session: { strategy: "jwt" },
+  // Absolute session cap (defense-in-depth). Inactivity logout is enforced
+  // client-side by the IdleTimeout component; this ensures a session cookie
+  // can't outlive a reasonable working window even if the client never runs.
+  session: { strategy: "jwt", maxAge: 60 * 60 * 12, updateAge: 60 * 60 },
   pages: { signIn: "/login" },
   trustHost: true,
   providers: [],

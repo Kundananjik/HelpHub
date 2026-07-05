@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input, Textarea, Label, FieldError } from "@/components/ui/Field";
+import { Input, Textarea, Label, Select, FieldError } from "@/components/ui/Field";
 import { SpinnerIcon } from "@/components/icons";
 
 export function ArticleForm({
@@ -17,6 +17,7 @@ export function ArticleForm({
     body: string;
     category: string | null;
     published: boolean;
+    visibility: "EVERYONE" | "STAFF";
   };
 }) {
   const router = useRouter();
@@ -24,6 +25,9 @@ export function ArticleForm({
   const [body, setBody] = useState(initial?.body ?? "");
   const [category, setCategory] = useState(initial?.category ?? "");
   const [published, setPublished] = useState(initial?.published ?? true);
+  const [visibility, setVisibility] = useState<"EVERYONE" | "STAFF">(
+    initial?.visibility ?? "EVERYONE"
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +40,7 @@ export function ArticleForm({
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, body, category, published }),
+      body: JSON.stringify({ title, body, category, published, visibility }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -67,14 +71,29 @@ export function ArticleForm({
             placeholder="e.g. How to reset your password"
           />
         </div>
-        <div>
-          <Label htmlFor="category">Category (optional)</Label>
-          <Input
-            id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="e.g. Accounts"
-          />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="category">Category (optional)</Label>
+            <Input
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g. Accounts"
+            />
+          </div>
+          <div>
+            <Label htmlFor="visibility">Audience</Label>
+            <Select
+              id="visibility"
+              value={visibility}
+              onChange={(e) =>
+                setVisibility(e.target.value as "EVERYONE" | "STAFF")
+              }
+            >
+              <option value="EVERYONE">Everyone (all users)</option>
+              <option value="STAFF">Staff only (technicians & admins)</option>
+            </Select>
+          </div>
         </div>
         <div>
           <Label htmlFor="body">Content</Label>
