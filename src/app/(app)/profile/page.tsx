@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/app/PageHeader";
 import { ProfileForm } from "./ProfileForm";
+import { ChangePasswordForm } from "./ChangePasswordForm";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { ROLE_LABELS } from "@/lib/constants";
@@ -71,6 +72,13 @@ export default async function ProfilePage() {
             }}
             departments={departments}
           />
+        </div>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader title="Change password" />
+        <div className="p-6">
+          <ChangePasswordForm />
         </div>
       </Card>
     </div>
