@@ -25,13 +25,13 @@ export function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-medium text-slate-500 sm:text-sm dark:text-slate-400">
             {label}
           </p>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <p className="mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:mt-2 sm:text-3xl dark:text-white">
             {value}
           </p>
           {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
@@ -39,7 +39,7 @@ export function StatCard({
         {icon && (
           <span
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-lg",
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10",
               ACCENTS[accent]
             )}
           >
