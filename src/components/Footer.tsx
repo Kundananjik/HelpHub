@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function Footer({ className }: { className?: string }) {
@@ -10,6 +11,28 @@ export function Footer({ className }: { className?: string }) {
       )}
     >
       <div className="mx-auto max-w-6xl px-6 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+        <nav className="mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <Link
+            href="/privacy"
+            className="hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            Privacy Policy
+          </Link>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <Link
+            href="/terms"
+            className="hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            Terms &amp; Conditions
+          </Link>
+          <span className="text-slate-300 dark:text-slate-600">•</span>
+          <Link
+            href="/cookies"
+            className="hover:text-indigo-600 dark:hover:text-indigo-400"
+          >
+            Cookie Policy
+          </Link>
+        </nav>
         <p className="font-medium text-slate-700 dark:text-slate-200">
           System created by Kundananji Simukonda
         </p>

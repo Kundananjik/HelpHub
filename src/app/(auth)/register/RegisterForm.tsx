@@ -95,6 +95,35 @@ export function RegisterForm({
         <FieldError message={state.fieldErrors?.password} />
       </div>
 
+      <label className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+        <input
+          type="checkbox"
+          name="acceptTerms"
+          required
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+        />
+        <span>
+          I agree to the{" "}
+          <a
+            href="/terms"
+            target="_blank"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Terms &amp; Conditions
+          </a>{" "}
+          and{" "}
+          <a
+            href="/privacy"
+            target="_blank"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
+          >
+            Privacy Policy
+          </a>
+          .
+        </span>
+      </label>
+      <FieldError message={state.fieldErrors?.acceptTerms} />
+
       <SubmitButton />
     </form>
   );

@@ -67,7 +67,7 @@ export default async function ArticlePage({
           )}
         </div>
 
-        <div className="mt-6 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+        <div className="mt-6 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700 dark:text-slate-200">
           {article.body}
         </div>
       </Card>

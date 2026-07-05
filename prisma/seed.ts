@@ -47,26 +47,28 @@ async function main() {
 
   const tech1 = await prisma.user.upsert({
     where: { email: "tech@helphub.dev" },
-    update: { passwordHash },
+    update: { passwordHash, skills: ["NETWORK", "HARDWARE", "ACCOUNT"] },
     create: {
       name: "Taylor Tech",
       email: "tech@helphub.dev",
       passwordHash,
       role: "TECHNICIAN",
       jobTitle: "Support Engineer",
+      skills: ["NETWORK", "HARDWARE", "ACCOUNT"],
       departmentId: itDept.id,
     },
   });
 
   const tech2 = await prisma.user.upsert({
     where: { email: "morgan@helphub.dev" },
-    update: { passwordHash },
+    update: { passwordHash, skills: ["SOFTWARE", "EMAIL", "SECURITY"] },
     create: {
       name: "Morgan Fields",
       email: "morgan@helphub.dev",
       passwordHash,
       role: "TECHNICIAN",
       jobTitle: "Systems Administrator",
+      skills: ["SOFTWARE", "EMAIL", "SECURITY"],
       departmentId: itDept.id,
     },
   });

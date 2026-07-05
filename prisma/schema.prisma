@@ -49,6 +49,7 @@ model User {
   role           Role      @default(EMPLOYEE)
   jobTitle       String?
   phone          String?
+  skills         Category[] @default([])
   departmentId   String?
   department     Department? @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now())
