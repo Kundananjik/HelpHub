@@ -32,6 +32,14 @@ export async function registerAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  if (formData.get("acceptTerms") !== "on") {
+    return {
+      fieldErrors: {
+        acceptTerms: "You must accept the Terms and Privacy Policy to register.",
+      },
+    };
+  }
+
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
