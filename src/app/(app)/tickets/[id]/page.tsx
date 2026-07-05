@@ -10,6 +10,11 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ticketNumber, formatDateTime, timeAgo } from "@/lib/utils";
 import { ROLE_LABELS } from "@/lib/constants";
+import { firstResponseDueAt, resolutionDueAt, isActive } from "@/lib/sla";
+import { SlaCountdown } from "@/components/app/SlaCountdown";
+import { EditableTicketContent } from "./EditableTicketContent";
+import { SatisfactionRating } from "./SatisfactionRating";
+import { TicketTags } from "./TicketTags";
 import { TicketActions } from "./TicketActions";
 import { CommentThread } from "./CommentThread";
 import { AttachmentGallery } from "./AttachmentGallery";
@@ -40,6 +45,7 @@ export default async function TicketDetailPage({
           createdAt: true,
         },
       },
+      tags: { select: { id: true, name: true, color: true } },
       comments: {
         include: {
           author: { select: { id: true, name: true, role: true } },
@@ -87,15 +93,18 @@ export default async function TicketDetailPage({
               <PriorityBadge priority={ticket.priority} />
               <CategoryBadge category={ticket.category} />
             </div>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {ticket.title}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <EditableTicketContent
+              ticketId={ticket.id}
+              title={ticket.title}
+              description={ticket.description}
+              canEdit={
+                (isStaff || ticket.creatorId === user.id) &&
+                ticket.status !== "CLOSED"
+              }
+            />
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               Opened by {ticket.creator.name} · {timeAgo(ticket.createdAt)}
             </p>
-            <div className="mt-5 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-              {ticket.description}
-            </div>
 
             {ticket.attachments.length > 0 && (
               <div className="mt-5">
@@ -185,6 +194,34 @@ export default async function TicketDetailPage({
             </dl>
           </Card>
 
+          {isActive(ticket.status) && (
+            <Card>
+              <CardHeader title="Service level (SLA)" />
+              <SlaCountdown
+                firstResponseDue={firstResponseDueAt(
+                  ticket.createdAt,
+                  ticket.priority
+                ).toISOString()}
+                firstResponseMet={
+                  !!ticket.firstResponseAt &&
+                  ticket.firstResponseAt <=
+                    firstResponseDueAt(ticket.createdAt, ticket.priority)
+                }
+                resolutionDue={resolutionDueAt(
+                  ticket.createdAt,
+                  ticket.priority
+                ).toISOString()}
+                resolutionMet={false}
+              />
+            </Card>
+          )}
+
+          <TicketTags
+            ticketId={ticket.id}
+            currentTags={ticket.tags}
+            canEdit={isStaff}
+          />
+
           <TicketActions
             ticketId={ticket.id}
             status={ticket.status}
@@ -197,6 +234,15 @@ export default async function TicketDetailPage({
             currentUserId={user.id}
             technicians={technicians}
             departments={departments}
+          />
+
+          <SatisfactionRating
+            ticketId={ticket.id}
+            status={ticket.status}
+            isOwner={ticket.creatorId === user.id}
+            rating={ticket.satisfactionRating}
+            comment={ticket.satisfactionComment}
+            isStaff={isStaff}
           />
 
           <p className="px-1 text-xs text-slate-400">

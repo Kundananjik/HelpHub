@@ -35,6 +35,13 @@ export function CommentThread({
   const [isInternal, setIsInternal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [canned, setCanned] = useState<{ id: string; title: string; body: string }[]>([]);
+
+  async function loadCanned() {
+    if (canned.length > 0) return;
+    const res = await fetch("/api/canned", { cache: "no-store" });
+    if (res.ok) setCanned((await res.json()).items);
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,6 +120,26 @@ export function CommentThread({
           <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
+        )}
+        {isStaff && (
+          <select
+            aria-label="Insert canned response"
+            defaultValue=""
+            onFocus={loadCanned}
+            onChange={(e) => {
+              const item = canned.find((c) => c.id === e.target.value);
+              if (item) setBody((b) => (b ? `${b}\n\n${item.body}` : item.body));
+              e.currentTarget.value = "";
+            }}
+            className="mb-2 block w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          >
+            <option value="">Insert canned response…</option>
+            {canned.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
         )}
         <Textarea
           value={body}

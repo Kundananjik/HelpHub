@@ -37,8 +37,35 @@ export function NotificationBell() {
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 30_000);
-    return () => clearInterval(interval);
+
+    // Real-time updates via Server-Sent Events (auto-reconnects on close).
+    let es: EventSource | null = null;
+    let fallback: ReturnType<typeof setInterval> | null = null;
+
+    if (typeof window !== "undefined" && "EventSource" in window) {
+      es = new EventSource("/api/notifications/stream");
+      es.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (typeof data.unread === "number") {
+            setUnread(data.unread);
+            load(); // refresh the list to match the new count
+          }
+        } catch {
+          /* ignore */
+        }
+      };
+      es.onerror = () => {
+        // EventSource will retry automatically; nothing to do.
+      };
+    } else {
+      fallback = setInterval(load, 30_000);
+    }
+
+    return () => {
+      es?.close();
+      if (fallback) clearInterval(fallback);
+    };
   }, [load]);
 
   useEffect(() => {

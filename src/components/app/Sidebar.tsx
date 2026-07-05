@@ -14,6 +14,8 @@ import {
   UserIcon,
   PlusIcon,
   LayersIcon,
+  BookIcon,
+  SettingsIcon,
 } from "@/components/icons";
 
 const ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -25,6 +27,8 @@ const ICONS: Record<string, React.FC<{ className?: string }>> = {
   user: UserIcon,
   plus: PlusIcon,
   layers: LayersIcon,
+  book: BookIcon,
+  settings: SettingsIcon,
 };
 
 export function Sidebar({

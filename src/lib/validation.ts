@@ -54,6 +54,13 @@ export const departmentSchema = z.object({
   description: z.string().max(300).optional().nullable(),
 });
 
+export const articleSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(140),
+  body: z.string().min(10, "Article body is too short"),
+  category: z.string().max(60).optional().nullable(),
+  published: z.boolean().optional(),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email("Enter a valid email"),
 });

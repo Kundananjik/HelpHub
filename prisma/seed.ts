@@ -32,7 +32,7 @@ async function main() {
   const finDept = departments.find((d) => d.name === "Finance")!;
 
   // Users
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: { email: "admin@helphub.dev" },
     update: {},
     create: {
@@ -101,6 +101,68 @@ async function main() {
   await prisma.auditLog.deleteMany({});
   await prisma.notification.deleteMany({});
   await prisma.ticket.deleteMany({});
+  await prisma.tag.deleteMany({});
+  await prisma.cannedResponse.deleteMany({});
+  await prisma.article.deleteMany({});
+
+  // Tags
+  const tagDefs = [
+    { name: "VIP", color: "purple" },
+    { name: "Hardware", color: "amber" },
+    { name: "Onboarding", color: "emerald" },
+    { name: "Recurring", color: "sky" },
+  ];
+  const tags = [];
+  for (const t of tagDefs) {
+    tags.push(await prisma.tag.create({ data: t }));
+  }
+
+  // Canned responses
+  await prisma.cannedResponse.createMany({
+    data: [
+      {
+        title: "Ask for more details",
+        body: "Thanks for reaching out. To help resolve this quickly, could you share your device name, any error messages, and the steps to reproduce the issue?",
+      },
+      {
+        title: "Password reset steps",
+        body: "You can reset your password from the login page using 'Forgot password'. If you don't receive the email within a few minutes, check your spam folder and let us know.",
+      },
+      {
+        title: "Resolved — please confirm",
+        body: "We've applied a fix on our side. Please try again and let us know if the issue is resolved so we can close this ticket.",
+      },
+    ],
+  });
+
+  // Auto-assign disabled by default
+  await prisma.systemSetting.upsert({
+    where: { key: "autoAssignEnabled" },
+    update: { value: "false" },
+    create: { key: "autoAssignEnabled", value: "false" },
+  });
+
+  // Knowledge base articles
+  await prisma.article.createMany({
+    data: [
+      {
+        title: "How to connect to the office Wi‑Fi",
+        slug: "connect-office-wifi",
+        category: "Network",
+        body: "1. Open your Wi‑Fi settings.\n2. Select the 'Corp' network.\n3. Enter your company email and password.\n4. Accept the certificate when prompted.\n\nIf authentication fails, submit a ticket and include your device asset tag.",
+        published: true,
+        authorId: tech1.id,
+      },
+      {
+        title: "Requesting new hardware",
+        slug: "requesting-new-hardware",
+        category: "Hardware",
+        body: "To request new hardware (monitor, laptop, peripherals), submit a ticket in the Hardware category with your manager's name for approval. Standard requests are fulfilled within a few business days.",
+        published: true,
+        authorId: admin.id,
+      },
+    ],
+  });
 
   type Seed = {
     title: string;
@@ -269,6 +331,28 @@ async function main() {
       });
     }
     console.log(`  · ticket ${created.number}: ${created.title}`);
+  }
+
+  // Attach a few demo tags to tickets.
+  const urgent = await prisma.ticket.findFirst({
+    where: { priority: "URGENT" },
+    orderBy: { createdAt: "asc" },
+  });
+  if (urgent) {
+    await prisma.ticket.update({
+      where: { id: urgent.id },
+      data: { tags: { connect: [{ id: tags[0].id }, { id: tags[3].id }] } },
+    });
+  }
+  const hardware = await prisma.ticket.findFirst({
+    where: { category: "HARDWARE" },
+    orderBy: { createdAt: "asc" },
+  });
+  if (hardware) {
+    await prisma.ticket.update({
+      where: { id: hardware.id },
+      data: { tags: { connect: [{ id: tags[1].id }] } },
+    });
   }
 
   // A couple of demo notifications for the primary employee.

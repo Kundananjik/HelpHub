@@ -15,6 +15,8 @@ export function navForRole(role: Role): NavItem[] {
       { label: "Departments", href: "/admin/departments", icon: "building" },
       { label: "Priorities", href: "/admin/priorities", icon: "layers" },
       { label: "Analytics", href: "/admin/analytics", icon: "chart" },
+      { label: "Knowledge Base", href: "/kb", icon: "book" },
+      { label: "Settings", href: "/admin/settings", icon: "settings" },
       { label: "Profile", href: "/profile", icon: "user" },
     ];
   }
@@ -22,6 +24,7 @@ export function navForRole(role: Role): NavItem[] {
     return [
       { label: "Dashboard", href: "/technician", icon: "dashboard" },
       { label: "Tickets", href: "/tickets", icon: "ticket" },
+      { label: "Knowledge Base", href: "/kb", icon: "book" },
       { label: "Profile", href: "/profile", icon: "user" },
     ];
   }
@@ -29,6 +32,7 @@ export function navForRole(role: Role): NavItem[] {
     { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
     { label: "My Tickets", href: "/tickets", icon: "ticket" },
     { label: "New Ticket", href: "/tickets/new", icon: "plus" },
+    { label: "Knowledge Base", href: "/kb", icon: "book" },
     { label: "Profile", href: "/profile", icon: "user" },
   ];
 }
