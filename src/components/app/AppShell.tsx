@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Role } from "@prisma/client";
 import { Sidebar } from "./Sidebar";
 import { NotificationBell } from "./NotificationBell";
+import { Footer } from "@/components/Footer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar } from "@/components/ui/Avatar";
 import { ROLE_LABELS } from "@/lib/constants";
@@ -122,10 +123,11 @@ export function AppShell({
 
         <main
           id="main-content"
-          className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
+          className="mx-auto min-h-[calc(100vh-9rem)] max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
         >
           {children}
         </main>
+        <Footer className="bg-transparent dark:bg-transparent" />
       </div>
     </div>
   );

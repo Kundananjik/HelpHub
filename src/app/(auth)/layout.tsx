@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TicketIcon } from "@/components/icons";
+import { Footer } from "@/components/Footer";
 
 export default function AuthLayout({
   children,
@@ -22,6 +23,7 @@ export default function AuthLayout({
           {children}
         </div>
       </div>
+      <Footer className="bg-transparent dark:bg-transparent" />
     </div>
   );
 }

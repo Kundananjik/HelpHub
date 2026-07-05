@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { dashboardPathFor } from "@/lib/guards";
+import { Footer } from "@/components/Footer";
 import {
   TicketIcon,
   ChartIcon,
@@ -122,11 +123,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-8 text-center text-sm text-slate-500">
-          HelpHub — IT Service Desk. Built with Next.js, Prisma & PostgreSQL.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
