@@ -15,7 +15,7 @@ export default function CookiePolicyPage() {
       </p>
 
       <LegalSection heading="Cookies we use">
-        <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
           <table className="min-w-full divide-y divide-slate-100 text-sm dark:divide-slate-800">
             <thead className="bg-slate-50 dark:bg-slate-800/50">
               <tr>

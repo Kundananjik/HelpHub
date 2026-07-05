@@ -14,6 +14,7 @@ export function LoginForm() {
   const params = useSearchParams();
   const registered = params.get("registered");
   const reset = params.get("reset");
+  const timeout = params.get("timeout");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +33,12 @@ export function LoginForm() {
       setError("Invalid email or password.");
       return;
     }
+    // Flag a successful login so the app shell can show a welcome message.
+    try {
+      sessionStorage.setItem("helphub:justLoggedIn", "1");
+    } catch {
+      /* ignore */
+    }
     router.push("/dashboard");
     router.refresh();
   }
@@ -46,6 +53,11 @@ export function LoginForm() {
       {reset && (
         <div className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
           Password reset. Please sign in with your new password.
+        </div>
+      )}
+      {timeout && (
+        <div className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 ring-1 ring-inset ring-amber-600/20">
+          You were signed out due to inactivity. Please sign in again.
         </div>
       )}
       {error && (

@@ -140,7 +140,8 @@ export function BulkTicketTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {/* Desktop / tablet table */}
+      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm md:block dark:border-slate-800 dark:bg-slate-900">
         <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
           <thead className="bg-slate-50 dark:bg-slate-800/50">
             <tr>
@@ -220,6 +221,48 @@ export function BulkTicketTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards with selection */}
+      <div className="space-y-3 md:hidden">
+        {tickets.map((t) => (
+          <div
+            key={t.id}
+            className={
+              "rounded-xl border bg-white p-4 shadow-sm dark:bg-slate-900 " +
+              (selected.has(t.id)
+                ? "border-indigo-300 ring-1 ring-indigo-300 dark:border-indigo-500/50"
+                : "border-slate-200 dark:border-slate-800")
+            }
+          >
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                aria-label={`Select ${t.title}`}
+                checked={selected.has(t.id)}
+                onChange={() => toggle(t.id)}
+                className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              />
+              <Link href={`/tickets/${t.id}`} className="min-w-0 flex-1">
+                <span className="font-mono text-xs text-slate-400">
+                  {ticketNumber(t.number)}
+                </span>
+                <p className="break-words font-medium text-slate-800 dark:text-slate-100">
+                  {t.title}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <StatusBadge status={t.status} />
+                  <PriorityBadge priority={t.priority} />
+                  <CategoryBadge category={t.category} />
+                </div>
+                <p className="mt-2 text-xs text-slate-400">
+                  {t.assignee ? `Assigned: ${t.assignee.name}` : "Unassigned"} ·{" "}
+                  {timeAgo(t.updatedAt)}
+                </p>
+              </Link>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
