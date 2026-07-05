@@ -33,6 +33,12 @@ export function LoginForm() {
       setError("Invalid email or password.");
       return;
     }
+    // Flag a successful login so the app shell can show a welcome message.
+    try {
+      sessionStorage.setItem("helphub:justLoggedIn", "1");
+    } catch {
+      /* ignore */
+    }
     router.push("/dashboard");
     router.refresh();
   }
