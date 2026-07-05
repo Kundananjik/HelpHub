@@ -8,10 +8,35 @@ import { Input, Label } from "@/components/ui/Field";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { ROLES, ROLE_LABELS } from "@/lib/constants";
+import {
+  ROLES,
+  ROLE_LABELS,
+  CATEGORIES,
+  CATEGORY_LABELS,
+} from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { SearchIcon, SpinnerIcon, CheckIcon } from "@/components/icons";
-import type { Role } from "@prisma/client";
+import type { Role, Category } from "@prisma/client";
+
+function generatePassword(length = 12): string {
+  const chars =
+    "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%";
+  let out = "";
+  const arr = new Uint32Array(length);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < length; i++) out += chars[arr[i] % chars.length];
+  return out;
+}
+
+function generatePassword(length = 12): string {
+  const chars =
+    "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%";
+  let out = "";
+  const arr = new Uint32Array(length);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < length; i++) out += chars[arr[i] % chars.length];
+  return out;
+}
 
 function generatePassword(length = 12): string {
   const chars =
@@ -28,6 +53,7 @@ type Row = {
   name: string;
   email: string;
   role: Role;
+  skills: Category[];
   departmentId: string | null;
   departmentName: string | null;
   createdTickets: number;
@@ -55,6 +81,31 @@ export function UsersTable({
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdError, setPwdError] = useState<string | null>(null);
   const [pwdDone, setPwdDone] = useState(false);
+  const [skillsFor, setSkillsFor] = useState<Row | null>(null);
+  const [skillSel, setSkillSel] = useState<Category[]>([]);
+  const [skillSaving, setSkillSaving] = useState(false);
+
+  function openSkills(u: Row) {
+    setSkillsFor(u);
+    setSkillSel(u.skills);
+  }
+  function toggleSkill(c: Category) {
+    setSkillSel((s) => (s.includes(c) ? s.filter((x) => x !== c) : [...s, c]));
+  }
+  async function saveSkills() {
+    if (!skillsFor) return;
+    setSkillSaving(true);
+    const res = await fetch(`/api/users/${skillsFor.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skills: skillSel }),
+    });
+    setSkillSaving(false);
+    if (res.ok) {
+      setSkillsFor(null);
+      router.refresh();
+    }
+  }
 
   async function submitReset() {
     if (!resetting) return;
@@ -222,6 +273,14 @@ export function UsersTable({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
+                        {u.role === "TECHNICIAN" && (
+                          <button
+                            onClick={() => openSkills(u)}
+                            className="whitespace-nowrap text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                          >
+                            Skills
+                          </button>
+                        )}
                         <button
                           onClick={() =>
                             setResetting({ id: u.id, name: u.name })
@@ -257,8 +316,56 @@ export function UsersTable({
         </div>
       </Card>
       <p className="mt-2 text-xs text-slate-400">
-        Ticket counts shown as created / assigned.
+        Ticket counts shown as created / assigned. Skills drive department/skill
+        auto-assignment.
       </p>
+
+      {skillsFor && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="absolute inset-0 bg-slate-900/50"
+            onClick={() => setSkillsFor(null)}
+          />
+          <Card className="relative w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+              Skills — {skillsFor.name}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Select the ticket categories this technician handles. Auto-assign
+              prefers technicians whose skills match the ticket&apos;s category.
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {CATEGORIES.map((c) => (
+                <label
+                  key={c}
+                  className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                >
+                  <input
+                    type="checkbox"
+                    checked={skillSel.includes(c)}
+                    onChange={() => toggleSkill(c)}
+                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  {CATEGORY_LABELS[c]}
+                </label>
+              ))}
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSkillsFor(null)}>
+                Cancel
+              </Button>
+              <Button onClick={saveSkills} disabled={skillSaving}>
+                {skillSaving && <SpinnerIcon className="h-4 w-4" />}
+                Save skills
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {resetting && (
         <div

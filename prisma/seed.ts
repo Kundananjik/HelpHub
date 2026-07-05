@@ -34,7 +34,7 @@ async function main() {
   // Users
   const admin = await prisma.user.upsert({
     where: { email: "admin@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Avery Admin",
       email: "admin@helphub.dev",
@@ -47,33 +47,35 @@ async function main() {
 
   const tech1 = await prisma.user.upsert({
     where: { email: "tech@helphub.dev" },
-    update: {},
+    update: { passwordHash, skills: ["NETWORK", "HARDWARE", "ACCOUNT"] },
     create: {
       name: "Taylor Tech",
       email: "tech@helphub.dev",
       passwordHash,
       role: "TECHNICIAN",
       jobTitle: "Support Engineer",
+      skills: ["NETWORK", "HARDWARE", "ACCOUNT"],
       departmentId: itDept.id,
     },
   });
 
   const tech2 = await prisma.user.upsert({
     where: { email: "morgan@helphub.dev" },
-    update: {},
+    update: { passwordHash, skills: ["SOFTWARE", "EMAIL", "SECURITY"] },
     create: {
       name: "Morgan Fields",
       email: "morgan@helphub.dev",
       passwordHash,
       role: "TECHNICIAN",
       jobTitle: "Systems Administrator",
+      skills: ["SOFTWARE", "EMAIL", "SECURITY"],
       departmentId: itDept.id,
     },
   });
 
   const emp1 = await prisma.user.upsert({
     where: { email: "employee@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Emma Employee",
       email: "employee@helphub.dev",
@@ -86,7 +88,7 @@ async function main() {
 
   const emp2 = await prisma.user.upsert({
     where: { email: "jordan@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Jordan Lee",
       email: "jordan@helphub.dev",
@@ -159,6 +161,16 @@ async function main() {
         category: "Hardware",
         body: "To request new hardware (monitor, laptop, peripherals), submit a ticket in the Hardware category with your manager's name for approval. Standard requests are fulfilled within a few business days.",
         published: true,
+        visibility: "EVERYONE",
+        authorId: admin.id,
+      },
+      {
+        title: "Internal: escalation runbook",
+        slug: "internal-escalation-runbook",
+        category: "Operations",
+        body: "Staff-only runbook.\n\n1. Acknowledge the ticket and set status to In Progress.\n2. For URGENT incidents, notify the on-call admin immediately.\n3. Record troubleshooting steps as internal notes.\n4. If unresolved within the SLA window, escalate priority and reassign.",
+        published: true,
+        visibility: "STAFF",
         authorId: admin.id,
       },
     ],

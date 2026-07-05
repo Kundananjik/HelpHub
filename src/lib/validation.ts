@@ -74,6 +74,7 @@ export const articleSchema = z.object({
   body: z.string().min(10, "Article body is too short"),
   category: z.string().max(60).optional().nullable(),
   published: z.boolean().optional(),
+  visibility: z.enum(["EVERYONE", "STAFF"]).optional(),
 });
 
 export const forgotPasswordSchema = z.object({
