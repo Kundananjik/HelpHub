@@ -270,10 +270,11 @@ authenticated session (except NextAuth's own endpoints) and enforce role checks.
 `GET /api/cron/sla` scans active (unresolved) tickets, marks any that have missed
 their first-response SLA target as breached, and notifies the assignee + admins.
 
-On Vercel it runs every 15 minutes via the schedule in `vercel.json`. Protect it
-by setting `CRON_SECRET`; the endpoint then requires an `Authorization: Bearer
-<CRON_SECRET>` header (Vercel Cron sends this automatically). You can trigger it
-manually for testing:
+On Vercel it runs on the schedule in `vercel.json` (daily by default, which the
+Hobby plan supports — upgrade to Pro for more frequent runs, e.g. `*/15 * * * *`).
+Protect it by setting `CRON_SECRET`; the endpoint then requires an
+`Authorization: Bearer <CRON_SECRET>` header (Vercel Cron sends this
+automatically). You can trigger it manually for testing:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/sla
