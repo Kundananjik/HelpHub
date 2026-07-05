@@ -9,6 +9,7 @@ import {
 import { PageHeader } from "@/components/app/PageHeader";
 import { TicketFilters } from "@/components/app/TicketFilters";
 import { TicketTable } from "@/components/app/TicketTable";
+import { BulkTicketTable } from "@/components/app/BulkTicketTable";
 import { Pagination } from "@/components/app/Pagination";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon } from "@/components/icons";
@@ -38,7 +39,8 @@ export default async function TicketsPage({
   const sort = (str(sp.sort) as TicketSort) ?? "recent";
   const page = Number(str(sp.page) ?? "1") || 1;
 
-  const [result, departments] = await Promise.all([
+  const isStaff = role === "TECHNICIAN" || role === "ADMIN";
+  const [result, departments, tags] = await Promise.all([
     getTicketsPage(session.user.id, role, filters, { page, sort }),
     role === "EMPLOYEE"
       ? Promise.resolve([])
@@ -46,9 +48,26 @@ export default async function TicketsPage({
           orderBy: { name: "asc" },
           select: { id: true, name: true },
         }),
+    isStaff
+      ? prisma.tag.findMany({
+          orderBy: { name: "asc" },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   const isEmployee = role === "EMPLOYEE";
+
+  const exportQuery = new URLSearchParams(
+    Object.entries({
+      q: filters.q,
+      status: filters.status,
+      priority: filters.priority,
+      category: filters.category,
+      departmentId: filters.departmentId,
+      assignment: filters.assignment,
+    }).filter((entry): entry is [string, string] => Boolean(entry[1]))
+  ).toString();
 
   return (
     <div>
@@ -60,13 +79,18 @@ export default async function TicketsPage({
             : "Browse, search, and filter every ticket in the system."
         }
         action={
-          isEmployee ? (
-            <Link href="/tickets/new">
-              <Button>
-                <PlusIcon className="h-4 w-4" /> New ticket
-              </Button>
-            </Link>
-          ) : undefined
+          <div className="flex items-center gap-2">
+            <a href={`/api/tickets/export?${exportQuery}`}>
+              <Button variant="outline">Export CSV</Button>
+            </a>
+            {isEmployee && (
+              <Link href="/tickets/new">
+                <Button>
+                  <PlusIcon className="h-4 w-4" /> New ticket
+                </Button>
+              </Link>
+            )}
+          </div>
         }
       />
 
@@ -75,7 +99,11 @@ export default async function TicketsPage({
         departments={departments}
       />
 
-      <TicketTable tickets={result.items} />
+      {isStaff ? (
+        <BulkTicketTable tickets={result.items} role={role} tags={tags} />
+      ) : (
+        <TicketTable tickets={result.items} />
+      )}
 
       <Pagination
         page={result.page}

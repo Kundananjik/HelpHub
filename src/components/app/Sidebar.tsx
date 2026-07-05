@@ -14,6 +14,8 @@ import {
   UserIcon,
   PlusIcon,
   LayersIcon,
+  BookIcon,
+  SettingsIcon,
 } from "@/components/icons";
 
 const ICONS: Record<string, React.FC<{ className?: string }>> = {
@@ -25,6 +27,8 @@ const ICONS: Record<string, React.FC<{ className?: string }>> = {
   user: UserIcon,
   plus: PlusIcon,
   layers: LayersIcon,
+  book: BookIcon,
+  settings: SettingsIcon,
 };
 
 export function Sidebar({
@@ -60,7 +64,7 @@ export function Sidebar({
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               active
                 ? "bg-indigo-600 text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             )}
           >
             <Icon className="h-[18px] w-[18px]" />

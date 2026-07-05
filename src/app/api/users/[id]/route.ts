@@ -8,6 +8,19 @@ import { ROLE_LABELS } from "@/lib/constants";
 const updateUserSchema = z.object({
   role: z.enum(["EMPLOYEE", "TECHNICIAN", "ADMIN"]).optional(),
   departmentId: z.string().nullable().optional(),
+  skills: z
+    .array(
+      z.enum([
+        "HARDWARE",
+        "SOFTWARE",
+        "NETWORK",
+        "ACCOUNT",
+        "EMAIL",
+        "SECURITY",
+        "OTHER",
+      ])
+    )
+    .optional(),
 });
 
 export async function PATCH(
@@ -52,6 +65,7 @@ export async function PATCH(
         parsed.data.departmentId === undefined
           ? undefined
           : parsed.data.departmentId || null,
+      skills: parsed.data.skills ?? undefined,
     },
   });
 

@@ -43,6 +43,16 @@ export function ticketNumber(n: number): string {
   return `HH-${String(n).padStart(4, "0")}`;
 }
 
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+}
+
 export function initials(name: string): string {
   return name
     .split(" ")

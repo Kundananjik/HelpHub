@@ -55,21 +55,21 @@ export default async function PrioritiesPage() {
           <Card key={p} className="p-5">
             <div className="flex items-center justify-between">
               <PriorityBadge priority={p} />
-              <span className="text-sm font-medium text-slate-500">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 {openCount(p)} open
               </span>
             </div>
-            <h3 className="mt-3 text-base font-semibold text-slate-800">
+            <h3 className="mt-3 text-base font-semibold text-slate-800 dark:text-slate-100">
               {PRIORITY_LABELS[p]}
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {PRIORITY_META[p].description}
             </p>
-            <div className="mt-4 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+            <div className="mt-4 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800">
               <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 Target response
               </span>
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {PRIORITY_META[p].sla}
               </span>
             </div>

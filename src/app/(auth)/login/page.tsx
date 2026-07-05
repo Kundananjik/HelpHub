@@ -6,14 +6,16 @@ import { Card } from "@/components/ui/Card";
 export default function LoginPage() {
   return (
     <Card className="p-7">
-      <h1 className="text-xl font-bold text-slate-900">Welcome back</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+        Welcome back
+      </h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Sign in to your HelpHub account.
       </p>
       <Suspense>
         <LoginForm />
       </Suspense>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
         Don&apos;t have an account?{" "}
         <Link
           href="/register"

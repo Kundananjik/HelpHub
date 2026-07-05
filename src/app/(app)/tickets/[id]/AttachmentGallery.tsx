@@ -26,7 +26,7 @@ export function AttachmentGallery({
             download={a.filename}
             target="_blank"
             rel="noreferrer"
-            className="group block overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+            className="group block overflow-hidden rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
           >
             {isImage ? (
               <img
@@ -39,7 +39,7 @@ export function AttachmentGallery({
                 <PaperclipIcon className="h-6 w-6" />
               </div>
             )}
-            <div className="truncate border-t border-slate-200 px-2 py-1.5 text-xs text-slate-600">
+            <div className="truncate border-t border-slate-200 px-2 py-1.5 text-xs text-slate-600 dark:border-slate-700 dark:text-slate-300">
               {a.filename}
             </div>
           </a>

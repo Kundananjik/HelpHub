@@ -56,15 +56,33 @@ A lightweight IT service desk (think ServiceNow / Jira Service Management) where
 - **Rate limiting** on registration, password reset, ticket creation, and comments
 
 ### Notifications & activity
-- **In-app notifications** (bell with unread count) for assignments, replies,
-  resolutions, role changes, and SLA breaches — with optional email delivery
+- **Real-time in-app notifications** (bell with unread count) via Server-Sent
+  Events, for assignments, replies, resolutions, role changes, and SLA breaches —
+  with optional email delivery
 - A dedicated `/notifications` page listing all updates
 - **Audit trail** of key events, surfaced in the admin "recent activity" feed
 
 ### SLA tracking
-- Per-priority first-response targets (Urgent 1h, High 4h, Medium 1 day, Low 3 days)
-- A scheduled job flags breached tickets and notifies the assignee + admins
-- **SLA breached** badges appear on breached tickets
+- **Business-hours-aware** first-response *and* resolution targets per priority
+  (Mon–Fri, 09:00–17:00 UTC — evenings/weekends aren't counted)
+- **Live SLA countdown** on each ticket ("due in 3h" / "overdue by 1h")
+- A scheduled job flags breached tickets, **auto-escalates** the priority one
+  level on a first-response breach, and notifies the assignee + admins
+
+### Ticket productivity
+- **Edit** a ticket's title/description (creator or staff, until closed)
+- **Satisfaction rating (CSAT)** — requesters rate resolved tickets 1–5 with feedback
+- **Tags/labels** — color-coded, admin-managed, assignable per ticket
+- **Bulk actions** for staff — select multiple tickets to set status, assign to
+  self, add a tag, or delete (admin)
+- **Canned responses** — reusable reply snippets technicians insert into comments
+- **CSV export** of the (filtered) ticket list
+- **Auto-assignment** — optionally load-balance new tickets to the technician
+  with the fewest active tickets (admin toggle)
+
+### Knowledge base
+- Searchable help articles at `/kb`; technicians/admins create, edit, publish,
+  and delete articles (drafts are staff-only)
 
 ### Experience
 - **Dark mode** with a toggle (respects system preference, no flash on load)
@@ -254,6 +272,15 @@ authenticated session (except NextAuth's own endpoints) and enforce role checks.
 | `PATCH`| `/api/tickets/:id`              | Owner / Tech / Admin | Update status (owner: close/reopen only) or fields|
 | `POST` | `/api/tickets/:id/assign`       | Tech / Admin         | Assign the ticket to the current user             |
 | `POST` | `/api/tickets/:id/comments`     | Owner / Tech / Admin | Add a comment or internal note                    |
+| `POST` | `/api/tickets/:id/rate`         | Owner                | Submit a satisfaction rating (CSAT)               |
+| `PUT`  | `/api/tickets/:id/tags`         | Tech / Admin         | Set the ticket's tags                             |
+| `POST` | `/api/tickets/bulk`             | Tech / Admin         | Bulk status/assign/tag/delete                     |
+| `GET`  | `/api/tickets/export`           | Any authenticated    | CSV export of the filtered ticket list            |
+| `GET`/`POST` | `/api/tags` · `/api/tags/:id` | Admin           | Manage tags                                       |
+| `GET`/`POST` | `/api/canned` · `/api/canned/:id` | Admin       | Manage canned responses                           |
+| `POST`/`PATCH`/`DELETE` | `/api/kb` · `/api/kb/:id` | Tech / Admin | Manage knowledge-base articles              |
+| `PATCH`| `/api/admin/settings`           | Admin                | Toggle auto-assignment                            |
+| `GET`  | `/api/notifications/stream`     | Any authenticated    | Server-Sent Events stream of unread count         |
 | `PATCH`| `/api/profile`                  | Any authenticated    | Update the current user's profile                 |
 | `POST` | `/api/departments`              | Admin                | Create a department                               |
 | `PATCH`| `/api/departments/:id`          | Admin                | Rename / edit a department                        |
@@ -270,10 +297,11 @@ authenticated session (except NextAuth's own endpoints) and enforce role checks.
 `GET /api/cron/sla` scans active (unresolved) tickets, marks any that have missed
 their first-response SLA target as breached, and notifies the assignee + admins.
 
-On Vercel it runs every 15 minutes via the schedule in `vercel.json`. Protect it
-by setting `CRON_SECRET`; the endpoint then requires an `Authorization: Bearer
-<CRON_SECRET>` header (Vercel Cron sends this automatically). You can trigger it
-manually for testing:
+On Vercel it runs on the schedule in `vercel.json` (daily by default, which the
+Hobby plan supports — upgrade to Pro for more frequent runs, e.g. `*/15 * * * *`).
+Protect it by setting `CRON_SECRET`; the endpoint then requires an
+`Authorization: Bearer <CRON_SECRET>` header (Vercel Cron sends this
+automatically). You can trigger it manually for testing:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/sla

@@ -11,6 +11,8 @@ import { notifyUsers } from "@/lib/notifications";
 import { STATUS_LABELS } from "@/lib/constants";
 
 const updateSchema = z.object({
+  title: z.string().min(4).max(140).optional(),
+  description: z.string().min(10).optional(),
   status: z
     .enum(["OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"])
     .optional(),
@@ -57,14 +59,40 @@ export async function PATCH(
   const staff = isStaff(user.role);
   const isOwner = ticket.creatorId === user.id;
 
+  const editingContent =
+    data.title !== undefined || data.description !== undefined;
+  if (editingContent) {
+    if (!staff && !isOwner) return error("Forbidden", 403);
+    if (ticket.status === "CLOSED") {
+      return error("A closed ticket can't be edited.");
+    }
+  }
+
   if (!staff) {
-    const decision = evaluateEmployeeTicketUpdate(
-      data,
+    // Employees may edit their own content and change status (close/reopen);
+    // they may not touch priority/category/assignee/department.
+    const workflow = evaluateEmployeeTicketUpdate(
+      {
+        status: data.status,
+        priority: data.priority,
+        category: data.category,
+        assigneeId: data.assigneeId,
+        departmentId: data.departmentId,
+      },
       ticket.status,
       isOwner
     );
-    if (!decision.allowed) {
-      return error(decision.reason, decision.reason === "Forbidden" ? 403 : 400);
+    const hasWorkflowChange =
+      data.status !== undefined ||
+      data.priority !== undefined ||
+      data.category !== undefined ||
+      data.assigneeId !== undefined ||
+      data.departmentId !== undefined;
+    if (hasWorkflowChange && !workflow.allowed) {
+      return error(
+        workflow.reason,
+        workflow.reason === "Forbidden" ? 403 : 400
+      );
     }
   }
 
@@ -78,6 +106,8 @@ export async function PATCH(
   const updated = await prisma.ticket.update({
     where: { id },
     data: {
+      title: editingContent ? data.title ?? undefined : undefined,
+      description: editingContent ? data.description ?? undefined : undefined,
       status: data.status ?? undefined,
       priority: staff ? data.priority ?? undefined : undefined,
       category: staff ? data.category ?? undefined : undefined,

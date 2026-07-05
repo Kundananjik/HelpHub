@@ -49,6 +49,7 @@ model User {
   role           Role      @default(EMPLOYEE)
   jobTitle       String?
   phone          String?
+  skills         Category[] @default([])
   departmentId   String?
   department     Department? @relation("DepartmentMembers", fields: [departmentId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now())
@@ -62,6 +63,7 @@ model User {
   resetTokens    PasswordResetToken[]
   auditLogs      AuditLog[]
   notifications  Notification[]
+  articles       Article[]
 
   @@index([role])
   @@index([departmentId])
@@ -104,7 +106,13 @@ model Ticket {
   resolvedAt     DateTime?
   firstResponseAt DateTime?
   slaBreached    Boolean   @default(false)
+  resolutionBreached Boolean @default(false)
+  escalated      Boolean   @default(false)
 
+  satisfactionRating  Int?
+  satisfactionComment String?
+
+  tags           Tag[]     @relation("TicketTags")
   auditLogs      AuditLog[]
   notifications  Notification[]
 
@@ -150,6 +158,49 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("slate")
+  tickets   Ticket[] @relation("TicketTags")
+  createdAt DateTime @default(now())
+}
+
+enum ArticleVisibility {
+  EVERYONE
+  STAFF
+}
+
+model Article {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  body       String
+  category   String?
+  published  Boolean  @default(true)
+  visibility ArticleVisibility @default(EVERYONE)
+  authorId   String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+}
+
+model CannedResponse {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model AuditLog {

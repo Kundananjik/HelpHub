@@ -11,12 +11,14 @@ export default async function RegisterPage() {
 
   return (
     <Card className="p-7">
-      <h1 className="text-xl font-bold text-slate-900">Create your account</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+        Create your account
+      </h1>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Register as an employee to start submitting tickets.
       </p>
       <RegisterForm departments={departments} />
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
         Already have an account?{" "}
         <Link
           href="/login"

@@ -5,6 +5,7 @@ import { storeAttachment } from "@/lib/storage";
 import { rateLimit } from "@/lib/ratelimit";
 import { logAudit } from "@/lib/audit";
 import { notifyUsers } from "@/lib/notifications";
+import { isAutoAssignEnabled, pickTechnicianForAssignment } from "@/lib/settings";
 
 const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024; // 2MB per file (base64 stored)
 
@@ -80,6 +81,31 @@ export async function POST(req: Request) {
     actorId: g.session.user.id,
     ticketId: ticket.id,
   });
+
+  // Load-balanced auto-assignment (when enabled by an admin).
+  if (await isAutoAssignEnabled()) {
+    const techId = await pickTechnicianForAssignment({
+      departmentId: departmentId || null,
+      category,
+    });
+    if (techId) {
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { assigneeId: techId, status: "IN_PROGRESS" },
+      });
+      await logAudit({
+        action: "ticket.assigned",
+        summary: "Auto-assigned to balance technician workload",
+        ticketId: ticket.id,
+      });
+      await notifyUsers({
+        userIds: [techId],
+        type: "ticket.assigned",
+        message: `You were auto-assigned ticket "${ticket.title}"`,
+        ticketId: ticket.id,
+      });
+    }
+  }
 
   // Notify admins so the ticket surfaces in oversight.
   const admins = await prisma.user.findMany({

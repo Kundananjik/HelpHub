@@ -5,8 +5,28 @@ import {
   PRIORITY_LABELS,
   PRIORITY_STYLES,
   CATEGORY_LABELS,
+  TAG_COLOR_STYLES,
 } from "@/lib/constants";
 import type { Status, Priority, Category } from "@prisma/client";
+
+export function TagBadge({
+  name,
+  color,
+}: {
+  name: string;
+  color: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
+        TAG_COLOR_STYLES[color] ?? TAG_COLOR_STYLES.slate
+      )}
+    >
+      {name}
+    </span>
+  );
+}
 
 export function StatusBadge({ status }: { status: Status }) {
   return (

@@ -153,9 +153,9 @@ export function NewTicketForm({
 
         <div>
           <Label>Attachments (optional)</Label>
-          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center hover:bg-slate-100">
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700">
             <PaperclipIcon className="mb-1 h-5 w-5 text-slate-400" />
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-slate-600 dark:text-slate-300">
               Click to upload screenshots (max 2MB each)
             </span>
             <input
@@ -171,7 +171,7 @@ export function NewTicketForm({
               {attachments.map((a, i) => (
                 <li
                   key={i}
-                  className="flex items-center justify-between rounded-md bg-slate-100 px-3 py-1.5 text-sm text-slate-700"
+                  className="flex items-center justify-between rounded-md bg-slate-100 px-3 py-1.5 text-sm text-slate-700 dark:bg-slate-800 dark:text-slate-200"
                 >
                   <span className="truncate">{a.filename}</span>
                   <button
