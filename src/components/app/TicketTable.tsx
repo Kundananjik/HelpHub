@@ -17,11 +17,20 @@ export type TicketRow = {
   priority: import("@prisma/client").Priority;
   category: import("@prisma/client").Category;
   updatedAt: Date;
+  slaBreached?: boolean;
   creator: { name: string };
   assignee: { name: string } | null;
   department: { name: string } | null;
   _count?: { comments: number };
 };
+
+function SlaBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/15 dark:text-red-300">
+      SLA breached
+    </span>
+  );
+}
 
 export function TicketTable({
   tickets,
@@ -48,9 +57,9 @@ export function TicketTable({
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
-        <table className="min-w-full divide-y divide-slate-100">
-          <thead className="bg-slate-50">
+      <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block dark:border-slate-800 dark:bg-slate-900">
+        <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+          <thead className="bg-slate-50 dark:bg-slate-800/50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Ticket
@@ -72,15 +81,15 @@ export function TicketTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {tickets.map((t) => (
-              <tr key={t.id} className="group hover:bg-slate-50">
+              <tr key={t.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
                 <td className="px-4 py-3">
                   <Link href={`/tickets/${t.id}`} className="block">
                     <span className="font-mono text-xs text-slate-400">
                       {ticketNumber(t.number)}
                     </span>
-                    <p className="font-medium text-slate-800 group-hover:text-indigo-600">
+                    <p className="font-medium text-slate-800 group-hover:text-indigo-600 dark:text-slate-100">
                       {t.title}
                     </p>
                     <span className="text-xs text-slate-400">
@@ -90,7 +99,10 @@ export function TicketTable({
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={t.status} />
+                  <div className="flex flex-col items-start gap-1">
+                    <StatusBadge status={t.status} />
+                    {t.slaBreached && <SlaBadge />}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <PriorityBadge priority={t.priority} />
@@ -125,15 +137,20 @@ export function TicketTable({
           <Link
             key={t.id}
             href={`/tickets/${t.id}`}
-            className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+            className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-slate-400">
                 {ticketNumber(t.number)}
               </span>
-              <StatusBadge status={t.status} />
+              <div className="flex items-center gap-1">
+                {t.slaBreached && <SlaBadge />}
+                <StatusBadge status={t.status} />
+              </div>
             </div>
-            <p className="mt-1 font-medium text-slate-800">{t.title}</p>
+            <p className="mt-1 font-medium text-slate-800 dark:text-slate-100">
+              {t.title}
+            </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <PriorityBadge priority={t.priority} />
               <CategoryBadge category={t.category} />

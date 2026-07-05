@@ -6,8 +6,7 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { DonutChart, VerticalBarChart } from "@/components/app/Charts";
 import { Avatar } from "@/components/ui/Avatar";
-import { StatusBadge } from "@/components/ui/Badge";
-import { ticketNumber, timeAgo } from "@/lib/utils";
+import { timeAgo } from "@/lib/utils";
 import { STATUS_LABELS, STATUSES } from "@/lib/constants";
 import {
   UsersIcon,
@@ -39,17 +38,17 @@ export default async function AdminDashboard() {
       select: { name: true, _count: { select: { tickets: true } } },
       orderBy: { name: "asc" },
     }),
-    prisma.ticket.findMany({
+    prisma.auditLog.findMany({
       select: {
         id: true,
-        number: true,
-        title: true,
-        status: true,
-        updatedAt: true,
-        creator: { select: { name: true } },
+        action: true,
+        summary: true,
+        createdAt: true,
+        ticketId: true,
+        actor: { select: { name: true } },
       },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
+      orderBy: { createdAt: "desc" },
+      take: 8,
     }),
   ]);
 
@@ -125,32 +124,39 @@ export default async function AdminDashboard() {
               </Link>
             }
           />
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {recent.length === 0 && (
               <li className="px-5 py-8 text-center text-sm text-slate-400">
                 No activity yet.
               </li>
             )}
-            {recent.map((t) => (
-              <li key={t.id} className="flex items-center gap-3 px-5 py-3">
-                <Avatar name={t.creator.name} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/tickets/${t.id}`}
-                    className="block truncate text-sm font-medium text-slate-800 hover:text-indigo-600"
-                  >
-                    <span className="font-mono text-xs text-slate-400">
-                      {ticketNumber(t.number)}
-                    </span>{" "}
-                    {t.title}
-                  </Link>
-                  <p className="text-xs text-slate-400">
-                    {t.creator.name} · {timeAgo(t.updatedAt)}
-                  </p>
+            {recent.map((log) => {
+              const row = (
+                <div className="flex items-center gap-3 px-5 py-3">
+                  <Avatar name={log.actor?.name ?? "System"} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+                      {log.summary}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {log.actor?.name ?? "System"} · {timeAgo(log.createdAt)}
+                    </p>
+                  </div>
                 </div>
-                <StatusBadge status={t.status} />
-              </li>
-            ))}
+              );
+              return log.ticketId ? (
+                <li key={log.id}>
+                  <Link
+                    href={`/tickets/${log.ticketId}`}
+                    className="block hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  >
+                    {row}
+                  </Link>
+                </li>
+              ) : (
+                <li key={log.id}>{row}</li>
+              );
+            })}
           </ul>
         </Card>
       </div>

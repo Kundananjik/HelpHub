@@ -43,7 +43,7 @@ export default async function ProfilePage() {
         <div className="flex items-center gap-4">
           <Avatar name={user.name} size="lg" />
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               {user.name}
             </h2>
             <p className="text-sm text-slate-500">{user.email}</p>

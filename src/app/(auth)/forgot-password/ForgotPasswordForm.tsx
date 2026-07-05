@@ -26,6 +26,11 @@ export function ForgotPasswordForm() {
 
   return (
     <form action={formAction} className="mt-6 space-y-4">
+      {state.error && (
+        <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-600/20">
+          {state.error}
+        </div>
+      )}
       {state.success && (
         <div className="space-y-2 rounded-lg bg-emerald-50 px-3 py-3 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
           <p>{state.success}</p>

@@ -85,7 +85,7 @@ export default async function EmployeeDashboard() {
 
       <div className="mt-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
             Recent tickets
           </h2>
           <Link

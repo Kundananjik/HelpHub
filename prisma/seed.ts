@@ -97,7 +97,9 @@ async function main() {
     },
   });
 
-  // Clear existing sample tickets to keep seed idempotent-ish
+  // Clear existing sample data to keep seed idempotent-ish
+  await prisma.auditLog.deleteMany({});
+  await prisma.notification.deleteMany({});
   await prisma.ticket.deleteMany({});
 
   type Seed = {
@@ -248,7 +250,41 @@ async function main() {
           : undefined,
       },
     });
+    await prisma.auditLog.create({
+      data: {
+        action: "ticket.created",
+        summary: `Ticket "${created.title}" created`,
+        actorId: t.creatorId,
+        ticketId: created.id,
+      },
+    });
+    if (t.assigneeId) {
+      await prisma.auditLog.create({
+        data: {
+          action: "ticket.assigned",
+          summary: "Ticket assigned to a technician",
+          actorId: t.assigneeId,
+          ticketId: created.id,
+        },
+      });
+    }
     console.log(`  · ticket ${created.number}: ${created.title}`);
+  }
+
+  // A couple of demo notifications for the primary employee.
+  const firstTicket = await prisma.ticket.findFirst({
+    where: { creatorId: emp1.id },
+    orderBy: { createdAt: "desc" },
+  });
+  if (firstTicket) {
+    await prisma.notification.create({
+      data: {
+        userId: emp1.id,
+        type: "comment.added",
+        message: `New reply on "${firstTicket.title}"`,
+        ticketId: firstTicket.id,
+      },
+    });
   }
 
   console.log("\nSeed complete. Demo accounts (password: password123):");

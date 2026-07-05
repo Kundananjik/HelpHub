@@ -1,6 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { guard, json, error } from "@/lib/api";
 import { commentSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/ratelimit";
+import {
+  isStaff,
+  canCommentOnTicket,
+  canPostInternalNote,
+} from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
+import { notifyUsers } from "@/lib/notifications";
 
 export async function POST(
   req: Request,
@@ -11,12 +19,28 @@ export async function POST(
   const { id } = await params;
   const { user } = g.session;
 
-  const ticket = await prisma.ticket.findUnique({ where: { id } });
+  const rl = await rateLimit(`comment:${user.id}`, {
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (!rl.success) return error("Too many comments. Please slow down.", 429);
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      creatorId: true,
+      assigneeId: true,
+      firstResponseAt: true,
+    },
+  });
   if (!ticket) return error("Ticket not found", 404);
 
-  const isStaff = user.role === "TECHNICIAN" || user.role === "ADMIN";
-  const isOwner = ticket.creatorId === user.id;
-  if (!isStaff && !isOwner) return error("Forbidden", 403);
+  const staff = isStaff(user.role);
+  if (!canCommentOnTicket(user.role, user.id, ticket.creatorId)) {
+    return error("Forbidden", 403);
+  }
 
   let body: unknown;
   try {
@@ -29,8 +53,8 @@ export async function POST(
     return error(parsed.error.issues[0]?.message ?? "Invalid input");
   }
 
-  // Only staff can post internal (troubleshooting) notes.
-  const isInternal = isStaff ? Boolean(parsed.data.isInternal) : false;
+  const isInternal =
+    canPostInternalNote(user.role) && Boolean(parsed.data.isInternal);
 
   const comment = await prisma.comment.create({
     data: {
@@ -42,11 +66,40 @@ export async function POST(
     select: { id: true },
   });
 
-  // Touch the ticket's updatedAt so it surfaces as recently active.
+  // A public staff comment counts as the first response for SLA purposes.
   await prisma.ticket.update({
     where: { id },
-    data: { updatedAt: new Date() },
+    data: {
+      updatedAt: new Date(),
+      firstResponseAt:
+        staff && !isInternal && !ticket.firstResponseAt
+          ? new Date()
+          : undefined,
+    },
   });
+
+  await logAudit({
+    action: isInternal ? "comment.internal" : "comment.added",
+    summary: isInternal ? "Internal note added" : "Comment added",
+    actorId: user.id,
+    ticketId: id,
+  });
+
+  // Notify the other party on public comments.
+  if (!isInternal) {
+    const recipients: string[] = [];
+    if (staff) {
+      recipients.push(ticket.creatorId);
+    } else {
+      if (ticket.assigneeId) recipients.push(ticket.assigneeId);
+    }
+    await notifyUsers({
+      userIds: recipients.filter((r) => r !== user.id),
+      type: "comment.added",
+      message: `New reply on "${ticket.title}"`,
+      ticketId: id,
+    });
+  }
 
   return json({ id: comment.id }, 201);
 }

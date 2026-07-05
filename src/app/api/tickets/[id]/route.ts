@@ -1,6 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { guard, json, error } from "@/lib/api";
 import { z } from "zod";
+import {
+  isStaff,
+  evaluateEmployeeTicketUpdate,
+  nextResolvedAt,
+} from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
+import { notifyUsers } from "@/lib/notifications";
+import { STATUS_LABELS } from "@/lib/constants";
 
 const updateSchema = z.object({
   status: z
@@ -46,48 +54,97 @@ export async function PATCH(
   }
   const data = parsed.data;
 
-  const isStaff = user.role === "TECHNICIAN" || user.role === "ADMIN";
+  const staff = isStaff(user.role);
   const isOwner = ticket.creatorId === user.id;
 
-  // Employees may only close their own resolved ticket (or reopen a closed one).
-  if (!isStaff) {
-    if (!isOwner) return error("Forbidden", 403);
-    const allowedEmployeeUpdate =
-      Object.keys(data).length === 1 && data.status !== undefined;
-    if (!allowedEmployeeUpdate) return error("Forbidden", 403);
-    if (data.status === "CLOSED" && ticket.status !== "RESOLVED") {
-      return error("Only resolved tickets can be closed.");
-    }
-    if (data.status === "OPEN" && ticket.status !== "CLOSED") {
-      return error("You can only reopen a closed ticket.");
-    }
-    if (data.status !== "CLOSED" && data.status !== "OPEN") {
-      return error("Forbidden", 403);
+  if (!staff) {
+    const decision = evaluateEmployeeTicketUpdate(
+      data,
+      ticket.status,
+      isOwner
+    );
+    if (!decision.allowed) {
+      return error(decision.reason, decision.reason === "Forbidden" ? 403 : 400);
     }
   }
 
-  let resolvedAt = ticket.resolvedAt;
-  if (data.status === "RESOLVED") {
-    resolvedAt = ticket.resolvedAt ?? new Date();
-  } else if (
-    data.status &&
-    data.status !== "CLOSED" // reopening clears the resolved timestamp
-  ) {
-    resolvedAt = null;
-  }
+  const resolvedAt = nextResolvedAt(data.status, ticket.resolvedAt);
+  const statusChanged = data.status && data.status !== ticket.status;
+  const assigneeChanged =
+    staff &&
+    data.assigneeId !== undefined &&
+    data.assigneeId !== ticket.assigneeId;
 
   const updated = await prisma.ticket.update({
     where: { id },
     data: {
       status: data.status ?? undefined,
-      priority: isStaff ? data.priority ?? undefined : undefined,
-      category: isStaff ? data.category ?? undefined : undefined,
-      assigneeId: isStaff ? data.assigneeId : undefined,
-      departmentId: isStaff ? data.departmentId : undefined,
+      priority: staff ? data.priority ?? undefined : undefined,
+      category: staff ? data.category ?? undefined : undefined,
+      assigneeId: staff ? data.assigneeId : undefined,
+      departmentId: staff ? data.departmentId : undefined,
       resolvedAt,
+      // Any active status other than OPEN counts as a first response from staff.
+      firstResponseAt:
+        staff && !ticket.firstResponseAt && data.status && data.status !== "OPEN"
+          ? new Date()
+          : undefined,
+      slaBreached:
+        data.status === "RESOLVED" || data.status === "CLOSED"
+          ? false
+          : undefined,
     },
-    select: { id: true },
+    select: { id: true, number: true, title: true, creatorId: true, assigneeId: true },
   });
+
+  // Audit + notifications for meaningful changes.
+  if (statusChanged && data.status) {
+    await logAudit({
+      action: "ticket.status_changed",
+      summary: `Status changed to ${STATUS_LABELS[data.status]}`,
+      actorId: user.id,
+      ticketId: id,
+    });
+    if (data.status === "RESOLVED") {
+      await notifyUsers({
+        userIds: [updated.creatorId],
+        type: "ticket.resolved",
+        message: `Your ticket "${updated.title}" was marked resolved`,
+        ticketId: id,
+        email: {
+          heading: "Your ticket was resolved",
+          ticketTitle: updated.title,
+          ticketNumberValue: updated.number,
+          body: "A technician marked your ticket as resolved. You can close it if the issue is fixed.",
+        },
+      });
+    }
+    if (data.status === "CLOSED" && !staff && updated.assigneeId) {
+      await notifyUsers({
+        userIds: [updated.assigneeId],
+        type: "ticket.closed",
+        message: `Ticket "${updated.title}" was closed by the requester`,
+        ticketId: id,
+      });
+    }
+  }
+
+  if (assigneeChanged && updated.assigneeId) {
+    await logAudit({
+      action: "ticket.assigned",
+      summary: `Ticket assigned`,
+      actorId: user.id,
+      ticketId: id,
+    });
+    if (updated.assigneeId !== user.id) {
+      await notifyUsers({
+        userIds: [updated.assigneeId],
+        type: "ticket.assigned",
+        message: `You were assigned ticket "${updated.title}"`,
+        ticketId: id,
+      });
+    }
+  }
 
   return json({ id: updated.id });
 }

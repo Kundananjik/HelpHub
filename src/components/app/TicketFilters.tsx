@@ -31,6 +31,8 @@ export function TicketFilters({
       const next = new URLSearchParams(params.toString());
       if (value) next.set(key, value);
       else next.delete(key);
+      // Any filter/sort change resets pagination to the first page.
+      next.delete("page");
       startTransition(() => {
         router.replace(`${pathname}?${next.toString()}`);
       });
@@ -124,6 +126,17 @@ export function TicketFilters({
           <option value="unassigned">Unassigned</option>
         </Select>
       )}
+
+      <Select
+        value={params.get("sort") ?? "recent"}
+        onChange={(e) => setParam("sort", e.target.value)}
+        aria-label="Sort tickets"
+      >
+        <option value="recent">Sort: Recently updated</option>
+        <option value="oldest">Sort: Oldest first</option>
+        <option value="priority-high">Sort: Priority (high→low)</option>
+        <option value="priority-low">Sort: Priority (low→high)</option>
+      </Select>
     </div>
   );
 }

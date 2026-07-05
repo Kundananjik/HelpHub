@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { guard, json, error } from "@/lib/api";
 import { z } from "zod";
+import { logAudit } from "@/lib/audit";
+import { notifyUsers } from "@/lib/notifications";
+import { ROLE_LABELS } from "@/lib/constants";
 
 const updateUserSchema = z.object({
   role: z.enum(["EMPLOYEE", "TECHNICIAN", "ADMIN"]).optional(),
@@ -35,6 +38,12 @@ export async function PATCH(
     return error("You cannot change your own admin role.");
   }
 
+  const before = await prisma.user.findUnique({
+    where: { id },
+    select: { role: true, name: true },
+  });
+  if (!before) return error("User not found", 404);
+
   await prisma.user.update({
     where: { id },
     data: {
@@ -45,6 +54,19 @@ export async function PATCH(
           : parsed.data.departmentId || null,
     },
   });
+
+  if (parsed.data.role && parsed.data.role !== before.role) {
+    await logAudit({
+      action: "user.role_changed",
+      summary: `${before.name}: ${ROLE_LABELS[before.role]} → ${ROLE_LABELS[parsed.data.role]}`,
+      actorId: g.session.user.id,
+    });
+    await notifyUsers({
+      userIds: [id],
+      type: "user.role_changed",
+      message: `Your role was changed to ${ROLE_LABELS[parsed.data.role]}`,
+    });
+  }
 
   return json({ ok: true });
 }

@@ -8,6 +8,9 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "@/lib/validation";
+import { sendEmail, passwordResetEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/ratelimit";
+import { appUrl } from "@/lib/env";
 
 export type ActionState = {
   error?: string;
@@ -77,11 +80,18 @@ export async function forgotPasswordAction(
   }
 
   const email = parsed.data.email.toLowerCase();
+
+  // Throttle reset requests per email to prevent abuse.
+  const rl = await rateLimit(`forgot:${email}`, { limit: 5, windowMs: 60_000 });
+  if (!rl.success) {
+    return { error: "Too many reset requests. Please try again shortly." };
+  }
+
   const user = await prisma.user.findUnique({ where: { email } });
 
   // Always behave the same to avoid account enumeration.
   const genericMessage =
-    "If an account exists for that email, a password reset link has been generated.";
+    "If an account exists for that email, a password reset link has been sent.";
 
   if (!user) {
     return { success: genericMessage };
@@ -94,9 +104,21 @@ export async function forgotPasswordAction(
     data: { token, userId: user.id, expires },
   });
 
-  // In a production app this token would be emailed. For this demo we surface
-  // the reset link directly so the flow can be completed end-to-end.
-  return { success: genericMessage, resetToken: token };
+  const resetUrl = `${appUrl}/reset-password?token=${token}`;
+  const template = passwordResetEmail(resetUrl);
+  const { delivered } = await sendEmail({
+    to: user.email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
+
+  // When no email provider is configured (dev), surface the link in-app so the
+  // flow can still be completed end-to-end.
+  return {
+    success: genericMessage,
+    resetToken: delivered ? undefined : token,
+  };
 }
 
 export async function resetPasswordAction(

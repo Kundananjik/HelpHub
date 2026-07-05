@@ -87,13 +87,13 @@ export default async function TicketDetailPage({
               <PriorityBadge priority={ticket.priority} />
               <CategoryBadge category={ticket.category} />
             </div>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               {ticket.title}
             </h1>
             <p className="mt-1 text-sm text-slate-500">
               Opened by {ticket.creator.name} · {timeAgo(ticket.createdAt)}
             </p>
-            <div className="mt-5 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+            <div className="mt-5 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-800 dark:text-slate-200">
               {ticket.description}
             </div>
 

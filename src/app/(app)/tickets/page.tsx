@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { requireAuth } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { getTickets, type TicketFilters as Filters } from "@/lib/tickets";
+import {
+  getTicketsPage,
+  type TicketFilters as Filters,
+  type TicketSort,
+} from "@/lib/tickets";
 import { PageHeader } from "@/components/app/PageHeader";
 import { TicketFilters } from "@/components/app/TicketFilters";
 import { TicketTable } from "@/components/app/TicketTable";
+import { Pagination } from "@/components/app/Pagination";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon } from "@/components/icons";
 import type { Status, Priority, Category } from "@prisma/client";
@@ -30,8 +35,11 @@ export default async function TicketsPage({
     assignment: str(sp.assignment) as Filters["assignment"],
   };
 
-  const [tickets, departments] = await Promise.all([
-    getTickets(session.user.id, role, filters),
+  const sort = (str(sp.sort) as TicketSort) ?? "recent";
+  const page = Number(str(sp.page) ?? "1") || 1;
+
+  const [result, departments] = await Promise.all([
+    getTicketsPage(session.user.id, role, filters, { page, sort }),
     role === "EMPLOYEE"
       ? Promise.resolve([])
       : prisma.department.findMany({
@@ -67,11 +75,13 @@ export default async function TicketsPage({
         departments={departments}
       />
 
-      <p className="mb-3 text-sm text-slate-500">
-        {tickets.length} ticket{tickets.length === 1 ? "" : "s"}
-      </p>
+      <TicketTable tickets={result.items} />
 
-      <TicketTable tickets={tickets} />
+      <Pagination
+        page={result.page}
+        totalPages={result.totalPages}
+        total={result.total}
+      />
     </div>
   );
 }

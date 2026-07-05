@@ -9,6 +9,7 @@ export const ticketRowSelect = {
   priority: true,
   category: true,
   updatedAt: true,
+  slaBreached: true,
   creator: { select: { name: true } },
   assignee: { select: { name: true } },
   department: { select: { name: true } },
@@ -70,4 +71,54 @@ export async function getTickets(
     select: ticketRowSelect,
     orderBy: [{ updatedAt: "desc" }],
   });
+}
+
+export type TicketSort =
+  | "recent"
+  | "oldest"
+  | "priority-high"
+  | "priority-low";
+
+export const DEFAULT_PAGE_SIZE = 10;
+
+export function ticketOrderBy(
+  sort: TicketSort
+): Prisma.TicketOrderByWithRelationInput[] {
+  switch (sort) {
+    case "oldest":
+      return [{ createdAt: "asc" }];
+    case "priority-high":
+      return [{ priority: "desc" }, { updatedAt: "desc" }];
+    case "priority-low":
+      return [{ priority: "asc" }, { updatedAt: "desc" }];
+    case "recent":
+    default:
+      return [{ updatedAt: "desc" }];
+  }
+}
+
+export async function getTicketsPage(
+  userId: string,
+  role: Role,
+  filters: TicketFilters,
+  {
+    page = 1,
+    pageSize = DEFAULT_PAGE_SIZE,
+    sort = "recent",
+  }: { page?: number; pageSize?: number; sort?: TicketSort } = {}
+) {
+  const where = buildTicketWhere(userId, role, filters);
+  const safePage = Math.max(1, page);
+  const [total, items] = await Promise.all([
+    prisma.ticket.count({ where }),
+    prisma.ticket.findMany({
+      where,
+      select: ticketRowSelect,
+      orderBy: ticketOrderBy(sort),
+      skip: (safePage - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  return { items, total, page: safePage, pageSize, totalPages };
 }
