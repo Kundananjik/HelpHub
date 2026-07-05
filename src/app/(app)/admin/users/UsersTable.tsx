@@ -58,6 +58,16 @@ function generatePassword(length = 12): string {
   return out;
 }
 
+function generatePassword(length = 12): string {
+  const chars =
+    "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%";
+  let out = "";
+  const arr = new Uint32Array(length);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < length; i++) out += chars[arr[i] % chars.length];
+  return out;
+}
+
 type Row = {
   id: string;
   name: string;
