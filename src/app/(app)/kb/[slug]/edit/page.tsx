@@ -27,6 +27,7 @@ export default async function EditArticlePage({
           body: article.body,
           category: article.category,
           published: article.published,
+          visibility: article.visibility,
         }}
       />
     </div>

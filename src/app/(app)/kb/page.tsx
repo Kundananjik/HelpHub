@@ -22,7 +22,9 @@ export default async function KnowledgeBasePage({
 
   const articles = await prisma.article.findMany({
     where: {
-      ...(staff ? {} : { published: true }),
+      // Employees only see published, everyone-visible articles.
+      // Staff see everything, including drafts and staff-only articles.
+      ...(staff ? {} : { published: true, visibility: "EVERYONE" }),
       ...(q
         ? {
             OR: [
@@ -39,6 +41,7 @@ export default async function KnowledgeBasePage({
       slug: true,
       category: true,
       published: true,
+      visibility: true,
       updatedAt: true,
       author: { select: { name: true } },
     },
@@ -48,7 +51,11 @@ export default async function KnowledgeBasePage({
     <div>
       <PageHeader
         title="Knowledge Base"
-        description="Guides and answers to common IT questions."
+        description={
+          staff
+            ? "All articles, including staff-only guides and drafts."
+            : "Guides and answers to common IT questions."
+        }
         action={
           staff ? (
             <Link href="/kb/new">
@@ -102,6 +109,11 @@ export default async function KnowledgeBasePage({
                   {!a.published && (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
                       Draft
+                    </span>
+                  )}
+                  {a.visibility === "STAFF" && (
+                    <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+                      Staff only
                     </span>
                   )}
                 </div>

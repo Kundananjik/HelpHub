@@ -24,7 +24,10 @@ export default async function ArticlePage({
   });
 
   if (!article) notFound();
-  if (!article.published && !staff) notFound();
+  // Employees can't see drafts or staff-only articles.
+  if (!staff && (!article.published || article.visibility === "STAFF")) {
+    notFound();
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -38,11 +41,18 @@ export default async function ArticlePage({
       <Card className="p-6 sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            {article.category && (
-              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
-                {article.category}
-              </span>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {article.category && (
+                <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300">
+                  {article.category}
+                </span>
+              )}
+              {staff && article.visibility === "STAFF" && (
+                <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+                  Staff only
+                </span>
+              )}
+            </div>
             <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
               {article.title}
             </h1>
