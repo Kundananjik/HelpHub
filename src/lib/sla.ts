@@ -3,33 +3,13 @@ import type { Priority, Status } from "@prisma/client";
 /**
  * Business-hours-aware SLA calculations.
  *
- * Business hours are Monday–Friday, 09:00–17:00 in Lusaka time (Central Africa
- * Time, a fixed UTC+2 with no daylight saving). SLA windows are measured in
- * *business minutes*, so a target that spans overnight/weekends only counts
- * working time. All Date values are UTC instants; we shift by the offset to
- * evaluate local wall-clock hours.
+ * Business hours are Monday–Friday, 09:00–17:00 (UTC). SLA windows are measured
+ * in *business minutes*, so a target that spans overnight/weekends only counts
+ * working time.
  */
 export const BUSINESS_START_HOUR = 9;
 export const BUSINESS_END_HOUR = 17;
 const BUSINESS_MINUTES_PER_DAY = (BUSINESS_END_HOUR - BUSINESS_START_HOUR) * 60;
-
-// Africa/Lusaka is UTC+2 year-round.
-const TZ_OFFSET_MS = 2 * 60 * 60 * 1000;
-
-function toLocal(d: Date): Date {
-  return new Date(d.getTime() + TZ_OFFSET_MS);
-}
-
-/** Builds a UTC instant from Lusaka-local wall-clock parts. */
-function fromLocal(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute = 0
-): Date {
-  return new Date(Date.UTC(year, month, day, hour, minute, 0) - TZ_OFFSET_MS);
-}
 
 /** First-response targets, in business minutes. */
 export const SLA_MINUTES: Record<Priority, number> = {
@@ -54,32 +34,41 @@ export function isActive(status: Status): boolean {
 }
 
 function startOfBusinessDay(d: Date): Date {
-  const l = toLocal(d);
-  return fromLocal(
-    l.getUTCFullYear(),
-    l.getUTCMonth(),
-    l.getUTCDate(),
-    BUSINESS_START_HOUR
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      BUSINESS_START_HOUR,
+      0,
+      0
+    )
   );
 }
 
 function endOfBusinessDay(d: Date): Date {
-  const l = toLocal(d);
-  return fromLocal(
-    l.getUTCFullYear(),
-    l.getUTCMonth(),
-    l.getUTCDate(),
-    BUSINESS_END_HOUR
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate(),
+      BUSINESS_END_HOUR,
+      0,
+      0
+    )
   );
 }
 
 function nextDayStart(d: Date): Date {
-  const l = toLocal(d);
-  return fromLocal(
-    l.getUTCFullYear(),
-    l.getUTCMonth(),
-    l.getUTCDate() + 1,
-    BUSINESS_START_HOUR
+  return new Date(
+    Date.UTC(
+      d.getUTCFullYear(),
+      d.getUTCMonth(),
+      d.getUTCDate() + 1,
+      BUSINESS_START_HOUR,
+      0,
+      0
+    )
   );
 }
 
@@ -87,7 +76,7 @@ function nextDayStart(d: Date): Date {
 function clampToBusinessStart(d: Date): Date {
   let c = new Date(d);
   for (let i = 0; i < 31; i++) {
-    const day = toLocal(c).getUTCDay(); // Lusaka weekday
+    const day = c.getUTCDay();
     if (day === 0 || day === 6) {
       c = nextDayStart(c);
       continue;

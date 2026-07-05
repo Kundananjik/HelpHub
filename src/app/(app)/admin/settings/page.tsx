@@ -59,8 +59,7 @@ export default async function AdminSettingsPage() {
           <p>
             SLA timers are measured in business hours:{" "}
             <span className="font-medium text-slate-800 dark:text-slate-100">
-              Monday–Friday, {BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}:00
-              Lusaka time (CAT, UTC+2)
+              Monday–Friday, {BUSINESS_START_HOUR}:00–{BUSINESS_END_HOUR}:00 UTC
             </span>
             . Time outside these hours (evenings and weekends) is not counted
             against SLA targets.
