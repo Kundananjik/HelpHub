@@ -4,15 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/app/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { TicketTable } from "@/components/app/TicketTable";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { UnassignedQueue } from "@/components/app/UnassignedQueue";
 import { ticketRowSelect } from "@/lib/tickets";
-import {
-  TicketIcon,
-  AlertIcon,
-  CheckIcon,
-  ClockIcon,
-  InboxIcon,
-} from "@/components/icons";
+import { AlertIcon, CheckIcon, ClockIcon, InboxIcon } from "@/components/icons";
 
 function startOfToday() {
   const d = new Date();
@@ -68,9 +62,16 @@ export default async function TechnicianDashboard() {
     }),
     prisma.ticket.findMany({
       where: { assigneeId: null, status: { notIn: ["CLOSED", "RESOLVED"] } },
-      select: ticketRowSelect,
-      orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
-      take: 5,
+      select: {
+        id: true,
+        number: true,
+        title: true,
+        priority: true,
+        category: true,
+        createdAt: true,
+      },
+      orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
+      take: 6,
     }),
   ]);
 
@@ -131,42 +132,7 @@ export default async function TechnicianDashboard() {
         </div>
 
         <div>
-          <Card>
-            <CardHeader
-              title="Unassigned queue"
-              action={
-                <Link
-                  href="/tickets?assignment=unassigned"
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  See all
-                </Link>
-              }
-            />
-            <ul className="divide-y divide-slate-100">
-              {unassigned.length === 0 && (
-                <li className="px-5 py-6 text-center text-sm text-slate-400">
-                  <TicketIcon className="mx-auto mb-1 h-5 w-5" />
-                  Queue is clear.
-                </li>
-              )}
-              {unassigned.map((t) => (
-                <li key={t.id} className="px-5 py-3">
-                  <Link
-                    href={`/tickets/${t.id}`}
-                    className="block hover:text-indigo-600"
-                  >
-                    <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
-                      {t.title}
-                    </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
-                      {t.priority} · {t.category}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <UnassignedQueue items={unassigned} />
         </div>
       </div>
     </div>
