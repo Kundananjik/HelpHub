@@ -34,7 +34,7 @@ async function main() {
   // Users
   const admin = await prisma.user.upsert({
     where: { email: "admin@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Avery Admin",
       email: "admin@helphub.dev",
@@ -47,7 +47,7 @@ async function main() {
 
   const tech1 = await prisma.user.upsert({
     where: { email: "tech@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Taylor Tech",
       email: "tech@helphub.dev",
@@ -60,7 +60,7 @@ async function main() {
 
   const tech2 = await prisma.user.upsert({
     where: { email: "morgan@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Morgan Fields",
       email: "morgan@helphub.dev",
@@ -73,7 +73,7 @@ async function main() {
 
   const emp1 = await prisma.user.upsert({
     where: { email: "employee@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Emma Employee",
       email: "employee@helphub.dev",
@@ -86,7 +86,7 @@ async function main() {
 
   const emp2 = await prisma.user.upsert({
     where: { email: "jordan@helphub.dev" },
-    update: {},
+    update: { passwordHash },
     create: {
       name: "Jordan Lee",
       email: "jordan@helphub.dev",
